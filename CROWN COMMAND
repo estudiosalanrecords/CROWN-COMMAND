@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CROWN | COMMAND MATRIX</title>
+    <style>
+        /* CORE EXECUTIVE AESTHETIC */
+        :root { 
+            --bg-deep: #050505; --matte-black: #0a0a0a; 
+            --gold-gradient: linear-gradient(135deg, #d4af37, #f3e5ab, #aa771c); 
+            --gold-solid: #d4af37; --silver-text: #cccccc; --white-text: #ffffff;
+            --roi-green: #00ff41; --danger-red: #e91429; --scout-blue: #00ffff; --mint-green: #00ffaa; --arch-orange: #ff8800;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            --font-mono: 'Courier New', monospace; 
+        }
+        
+        * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+        *::-webkit-scrollbar { width: 6px; height: 6px; }
+        *::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+
+        body { background-color: var(--bg-deep); color: var(--silver-text); font-family: var(--font-main); margin: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); transform: translateZ(0); -webkit-font-smoothing: antialiased; }
+        
+        /* DESKTOP REDUNDANCY FIX: Defines the layout flexbox so modules aren't pushed off-screen */
+        .os-layout { display: flex; width: 100%; height: 100dvh; position: relative; z-index: 1; overflow: hidden; }
+
+        .theatre-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(5,5,5,0.7) 0%, rgba(5,5,5,0.95) 100%), url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=3000&auto=format&fit=crop'); background-size: cover; background-position: center; z-index: -1; filter: blur(3px); transform: scale(1.05); }
+
+        body.warfare-mode .theatre-overlay { background: linear-gradient(to bottom, rgba(50,0,0,0.85) 0%, rgba(10,0,0,0.95) 100%), url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=3000&auto=format&fit=crop'); background-size: cover; background-position: center; }
+        body.warfare-mode { --gold-solid: #ff3333 !important; --gold-gradient: linear-gradient(135deg, #ff0000, #aa0000, #ff0000) !important; --silver-text: #ffcccc !important; animation: redAlert 4s infinite alternate; }
+        @keyframes redAlert { 0% { box-shadow: inset 0 0 0 rgba(255,0,0,0); } 100% { box-shadow: inset 0 0 150px rgba(255,0,0,0.3); } }
+
+        #auth-gateway, #setup-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; padding: 20px; }
+        #setup-modal { z-index: 9998; background: rgba(0,0,0,0.95); display: none; }
+        .auth-box { border: 1px solid rgba(255,255,255,0.1); padding: 50px; background: rgba(10,10,10,0.8); backdrop-filter: blur(20px); text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative; width: 100%; max-width: 450px; border-radius: 16px; }
+        .auth-title { font-size: clamp(28px, 5vw, 42px); font-weight: 800; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 8px; margin-bottom: 20px; display: inline-block; position: relative; }
+        .spider-logo { font-size: 14px; position:absolute; top:-10px; right:-25px; transform: rotate(180deg); }
+        @keyframes sweepLeft { 0% { transform: translateX(0); opacity: 1; filter: blur(0px); } 100% { transform: translateX(-100vw) skewX(-10deg); opacity: 0; filter: blur(10px); } }
+        .sweep-left { animation: sweepLeft 0.6s cubic-bezier(0.8, 0, 0.2, 1) forwards; }
+        
+        input, textarea, select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--white-text); padding: 14px 18px; font-family: var(--font-main); font-size: 13px; margin-bottom: 15px; width: 100%; outline: none; transition: 0.3s; border-radius: 8px; }
+        input:focus, textarea:focus, select:focus { border-color: var(--gold-solid); background: rgba(255,255,255,0.1); box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
+        .btn-metallic { background: var(--gold-gradient); border: none; color: #000; padding: 12px 24px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 11px; width: auto; transition: 0.3s; letter-spacing: 2px; border-radius: 500px; display: inline-block; text-align: center; }
+        .btn-metallic:hover { filter: brightness(1.2); transform: scale(1.02); box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3); }
+        
+        .market-ticker { background: rgba(0,0,0,0.8); border-bottom: 1px solid rgba(255,255,255,0.05); height: 35px; overflow: hidden; white-space: nowrap; z-index: 1000; display:flex; align-items:center; width: 100%; flex-shrink: 0; backdrop-filter: blur(10px); }
+        .ticker-track { display: inline-block; animation: ticker-scroll 60s linear infinite; will-change: transform; transform: translateZ(0); }
+        .ticker-item { display: inline-block; font-size: 11px; padding: 0 40px; color: var(--gold-solid); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
+        @keyframes ticker-scroll { 0% { transform: translate3d(0,0,0); } 100% { transform: translate3d(-100%,0,0); } }
+
+        .sidebar-left { width: 280px; background: rgba(0,0,0,0.6); border-right: 1px solid rgba(255,255,255,0.05); padding: 25px 20px; overflow-y: auto; height: 100%; display: flex; flex-direction: column; z-index: 500; transition: transform 0.3s ease; flex-shrink: 0; backdrop-filter: blur(20px); }
+        .section-label { font-size: 10px; color: #888; margin: 30px 0 10px 0; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding-left: 10px; }
+        .unit-card { padding: 12px 15px; margin-bottom: 6px; border: 1px solid transparent; cursor: pointer; transition: 0.2s; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 15px; background: transparent; color: var(--silver-text); border-radius: 8px; }
+        .unit-card:hover, .unit-card.active { background: rgba(255,255,255,0.1); color: var(--white-text); transform: translateX(5px); }
+        .unit-card img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+
+        .nuke-btn { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #111; border: 1px solid rgba(255,0,0,0.5); color: #f00; padding: 10px 30px; font-size: 11px; font-weight: 800; letter-spacing: 3px; cursor: pointer; z-index: 2000; border-radius: 500px; transition: 0.3s; }
+        .nuke-btn:hover { background: #900; color: #fff; box-shadow: 0 0 20px rgba(255,0,0,0.6); border-color: #f00; }
+        .mobile-menu-btn { display: none; position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); color: var(--white-text); padding: 10px 15px; z-index: 2000; cursor: pointer; font-size: 14px; border-radius: 8px; font-weight: bold; backdrop-filter: blur(10px); }
+
+        #top-profile-sec { position: absolute; top: 20px; right: 30px; z-index: 1500; display: none; align-items: center; gap: 15px; background: rgba(20,20,20,0.8); padding: 8px 15px; border: 1px solid rgba(255,255,255,0.05); border-radius: 500px; backdrop-filter: blur(15px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.3s; }
+        #top-profile-sec:hover { background: rgba(40,40,40,0.9); }
+
+        .main-dashboard { flex: 1; padding: 40px 4vw; overflow-y: auto; overflow-x: hidden; position: relative; contain: content; scroll-behavior: smooth; height: 100%; }
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; position: relative; z-index: 10; align-content: start; padding-bottom: 100px; }
+        .dash-module { background: rgba(18, 18, 18, 0.7); border: 1px solid rgba(255,255,255,0.05); padding: 30px; border-radius: 16px; backdrop-filter: blur(20px); display: flex; flex-direction: column; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .dash-module:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.1); }
+        .module-title { color: var(--white-text); font-size: 14px; letter-spacing: 2px; padding-bottom: 15px; margin-bottom: 20px; text-transform: uppercase; font-weight: 800; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap; gap: 10px; }
+
+        .data-card { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 15px; transition: 0.3s; display: flex; flex-direction: column; }
+        .data-card:hover { background: rgba(255,255,255,0.05); }
+        .data-val { color: var(--white-text); font-size: 28px; font-weight: 800; margin-bottom: 5px; font-family: var(--font-mono); letter-spacing: -1px; }
+
+        .ai-input-container { display: flex; align-items: flex-end; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 8px 15px; gap: 10px; transition: 0.3s; }
+        .ai-input-container:focus-within { border-color: var(--gold-solid); background: rgba(20,20,20,0.8); }
+        .ai-input-container textarea { background: transparent; border: none; margin: 0; padding: 10px 0; min-height: 40px; max-height: 150px; resize: vertical; font-size: 14px; color: #fff; width: 100%; }
+        .ai-icon-btn { color: #888; background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 8px; transition: 0.2s; }
+        .ai-icon-btn:hover { color: var(--white-text); }
+        .ai-send-btn { background: var(--white-text); color: #000; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; transition: 0.2s; margin-bottom: 4px; }
+        .ai-send-btn:hover { background: var(--gold-solid); transform: scale(1.05); }
+
+        .ai-chat-log { max-height: 300px; overflow-y: auto; margin-bottom: 15px; padding-right: 10px; display: flex; flex-direction: column; }
+        .ai-chat-bubble { margin-bottom: 15px; padding: 15px; border-left: 3px solid var(--gold-solid); background: rgba(255,255,255,0.02); font-weight: 500; font-size: 13px; line-height: 1.6; color: #eee; font-family: sans-serif; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 0 12px 12px 12px; }
+        .user-chat-bubble { margin-bottom: 15px; padding: 12px 15px; border-right: 3px solid #555; background: #111; text-align: right; color: #aaa; font-size: 12px; font-family: sans-serif; border-radius: 12px 0 12px 12px; margin-left: auto; max-width: 85%; }
+
+        .system-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(25px); padding: 2vh 2vw; opacity: 0; animation: fadeIn 0.3s forwards; }
+        @keyframes fadeIn { to { opacity: 1; } }
+        
+        .folder-content { background: rgba(15,15,15,0.9); border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 1400px; height: 100%; max-height: 95dvh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.8); border-radius: 16px; }
+        .folder-header-banner { height: 180px; background: #000; position: relative; overflow: hidden; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .folder-header-banner::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 100px; background: linear-gradient(to top, rgba(15,15,15,1), transparent); }
+        
+        .folder-body-grid { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+        .folder-nav { background: rgba(0,0,0,0.3); display: flex; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 0 20px; flex-shrink: 0; scrollbar-width: none; }
+        .folder-nav::-webkit-scrollbar { display: none; }
+        .nav-item { display: inline-block; padding: 20px 20px; font-size: 11px; font-weight: 700; color: #888; border-bottom: 2px solid transparent; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-item:hover, .nav-item.active { color: var(--white-text); border-bottom: 2px solid var(--gold-solid); }
+        
+        .pane-main { padding: 40px; overflow-y: auto; flex: 1; min-height: 0; contain: content; }
+        .close-btn { position: absolute; top: 20px; right: 20px; cursor: pointer; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: var(--white-text); padding: 8px 20px; font-size: 10px; font-weight: bold; z-index: 50; border-radius: 500px; backdrop-filter: blur(10px); transition: 0.2s; letter-spacing: 1px; }
+        .close-btn:hover { background: #fff; color: #000; }
+
+        #quick-dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(20,20,20,0.8); border: 1px solid rgba(255,255,255,0.1); padding: 12px 25px; display: flex; gap: 20px; border-radius: 500px; z-index: 4000; box-shadow: 0 20px 50px rgba(0,0,0,0.5); backdrop-filter: blur(20px); }
+        .dock-icon { position: relative; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; color: var(--white-text); transition: 0.3s; border: 1px solid transparent; }
+        .dock-icon:hover { transform: translateY(-8px) scale(1.1); background: var(--gold-gradient); color: #000; box-shadow: 0 10px 20px rgba(212,175,55,0.3); }
+
+        .drag-window { position: fixed; background: rgba(20,20,20,0.9); border: 1px solid rgba(255,255,255,0.1); z-index: 3500; display: none; box-shadow: 0 30px 60px rgba(0,0,0,0.8); flex-direction: column; will-change: transform; border-radius: 16px; overflow: hidden; backdrop-filter: blur(25px); max-width: 90vw; }
+        .drag-header { background: rgba(0,0,0,0.5); color: var(--white-text); padding: 15px 20px; font-size: 11px; font-weight: bold; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; cursor: move; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .board-overlay { z-index: 2500; flex-direction: column; background: rgba(0,0,0,0.95); padding: 0; }
+        .board-toolbar { width: 100%; height: 70px; background: rgba(15,15,15,0.9); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 40px; gap: 20px; flex-wrap: wrap; flex-shrink: 0; backdrop-filter: blur(10px); }
+        .board-canvas { flex: 1; width: 100%; position: relative; overflow: hidden; background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 40px 40px; }
+        .sticky-note { position: absolute; width: 220px; min-height: 220px; background: #222; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); cursor: move; display: flex; flex-direction: column; border-radius: 8px; transition: transform 0.1s; z-index: 2550; }
+        .sticky-note:active { transform: scale(1.02); z-index: 2600; }
+        .sticky-header { display: flex; justify-content: flex-end; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .sticky-text { flex: 1; background: transparent; border: none; color: #eee; resize: none; font-family: inherit; font-size: 14px; outline: none; padding: 0; line-height: 1.5; }
+
+        @media (max-width: 900px) {
+            .mobile-menu-btn { display: block; }
+            .os-layout { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+            .sidebar-left { display: none; }
+            .sidebar-left.open { display: grid !important; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 9999; }
+            
+            .sidebar-left { width: 100%; height: auto; max-height: none; overflow: visible; display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; padding: 80px 20px 20px 20px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.8); }
+            .section-label { grid-column: 1 / -1; margin: 10px 0 0 0; }
+            .unit-card { margin: 0; padding: 15px 10px; justify-content: center; text-align: center; flex-direction: column; gap: 8px; background: rgba(255,255,255,0.03); border-radius: 12px; }
+            .unit-card img { width: 35px; height: 35px; }
+            
+            .main-dashboard { padding: 80px 20px 20px 20px; flex: none; min-height: 100vh; }
+            .dash-grid { grid-template-columns: 1fr; }
+            
+            .system-overlay { padding: 0; background: #000; }
+            .folder-content { height: 100dvh; max-height: 100dvh; border-radius: 0; border: none; }
+            .pane-main { padding: 20px; padding-bottom: 120px; }
+            .close-btn { top: auto; bottom: 30px; right: 20px; background: #fff; color: #000; font-size: 14px; padding: 15px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+            
+            #top-profile-sec { top: 10px; right: 10px; padding: 5px; background: transparent; border: none; box-shadow: none; z-index: 10000; }
+            .auth-box { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-gateway">
+        <div class="auth-box">
+            <div class="auth-title">CROWN<div class="spider-logo">🕷️</div></div><br>
+            <div style="font-size: 11px; color: #888; letter-spacing: 6px; margin-bottom: 30px; font-weight:600;">EXECUTIVE COMMAND OS</div>
+            <input type="password" id="matrix-pass" class="hacker-input" placeholder="ENTER CLEARANCE CODE..." autocomplete="off">
+            <button id="auth-btn" class="btn-metallic" style="width:100%; font-size:12px; padding:15px;" onclick="initiateDecryption()">DECRYPT PROTOCOL</button>
+            <div id="auth-console" style="margin-top:20px; font-size:11px; color:#555; font-family:var(--font-mono);">> SYSTEM SECURE. AWAITING CREDENTIALS...</div>
+        </div>
+    </div>
+
+    <div id="setup-modal">
+        <div class="auth-box">
+            <div style="color:var(--white-text); font-size:24px; font-weight:800; letter-spacing:2px; margin-bottom:10px;">WELCOME</div>
+            <div style="font-size:12px; color:#aaa; margin-bottom:30px;">Initialize your operative profile.</div>
+            <div style="width:100px; height:100px; border-radius:50%; border:2px solid var(--gold-solid); margin:0 auto 20px auto; overflow:hidden; cursor:pointer; background:rgba(255,255,255,0.05);" onclick="document.getElementById('setup-pic-upload').click()">
+                <img id="setup-pic-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" style="width:100%; height:100%; object-fit: cover;">
+            </div>
+            <div style="font-size:10px; color:#888; margin-top:-10px; margin-bottom:20px; text-transform:uppercase;">Click to upload ID Badge</div>
+            <input type="file" id="setup-pic-upload" style="display:none;" accept="image/*" onchange="compressAndUploadPic(event, 'avatar', 'setup-pic-img')">
+            <textarea id="setup-bio" placeholder="Enter your designation / bio..." style="height:80px; text-align:center;"></textarea>
+            <button class="btn-metallic" onclick="finalizeSetup()">ENTER MATRIX</button>
+        </div>
+    </div>
+
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰ MENU</button>
+    <button id="nuke-btn" class="nuke-btn" onclick="toggleWarfareMode()" style="display:none;">WARFARE MODE</button>
+
+    <div id="top-profile-sec">
+        <div style="text-align: right; line-height: 1.4; display:none;" id="profile-text-info">
+            <b id="profile-name" style="color:var(--white-text); font-size:13px; letter-spacing:1px;">USER</b><br>
+            <span id="profile-role" style="color:var(--gold-solid); font-size:10px; font-weight:600; text-transform:uppercase;">ROLE</span><br>
+            <button onclick="systemLogout()" style="background:transparent; border:none; color:var(--silver-text); font-size:9px; cursor:pointer; padding:0; margin-top:5px; transition:0.2s;" onmouseover="this.style.color='#f00'" onmouseout="this.style.color='var(--silver-text)'">Logout</button>
+        </div>
+        <div style="position:relative; width:45px; height:45px; border:2px solid transparent; border-radius:50%; overflow:hidden; cursor:pointer; transition:0.3s;" onmouseover="this.style.borderColor='var(--gold-solid)'" onmouseout="this.style.borderColor='transparent'" onclick="document.getElementById('pic-upload').click()">
+            <img id="profile-pic-img" src="" style="width:100%; height:100%; object-fit: cover;">
+        </div>
+        <input type="file" id="pic-upload" style="display:none;" accept="image/*" onchange="compressAndUploadPic(event, 'avatar', 'profile-pic-img')">
+    </div>
+
+    <div class="market-ticker"><div class="ticker-track">
+        <div class="ticker-item">CROWN OS: CLOUD API ACTIVE</div><div class="ticker-item">CHARLOTTE'S WEB: SUPERPOSITIONING ENGAGED</div><div class="ticker-item">GLOBAL ROSTER: NOMINAL</div>
+    </div></div>
+    
+    <div class="os-layout">
+        <div class="theatre-overlay"></div>
+
+        <aside class="sidebar-left" id="sidebar">
+            <div style="text-align: center; margin-bottom: 20px; position: relative; grid-column: 1 / -1;">
+                <div style="font-size: 24px; font-weight: 900; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 8px;">CROWN</div>
+                <div style="font-size: 8px; letter-spacing: 4px; color:#666;">COMMAND MATRIX</div>
+            </div>
+            
+            <div class="section-label">EXECUTIVE BOARD</div>
+            <div class="unit-card" onclick="openFolder('Executive Comms', 'comms')">🤝 BOARD OVERVIEW</div>
+
+            <div id="operative-workspace-container" style="display:none; grid-column: 1 / -1;">
+                <div class="section-label">MY WORKSPACE</div>
+                <div class="unit-card" onclick="initWorkspace()" style="color:var(--gold-solid); border:1px dashed rgba(212,175,55,0.5);">➕ SPAWN MY COMPANY</div>
+            </div>
+
+            <div class="section-label">CENTRAL COMMAND</div>
+            <div class="unit-card" onclick="openFolder('Avian Music Group', 'structure')">🏛️ AVIAN MUSIC</div>
+            <div class="unit-card" onclick="openFolder('TechoftheCoast', 'structure')">🌊 TECHOFTHECOAST</div>
+            <div class="unit-card" onclick="openFolder('Chava\'s Entertainment', 'structure')">📀 CHAVA'S ENT.</div>
+            <div class="unit-card" onclick="openFolder('Estudios Alan Records', 'structure')">🎙️ ESTUDIOS ALAN</div>
+            <div class="unit-card" onclick="openFolder('Cine Alan Filmz', 'structure')">🎥 CINE ALAN</div>
+
+            <div class="section-label">ACTIVE ROSTER</div>
+            <div class="unit-card" onclick="openFolder('Efrain El Giro', 'roster')">🎙️ EFRAIN EL GIRO</div>
+            <div class="unit-card" onclick="openFolder('Fuera de Sitio', 'roster')">🎙️ FUERA DE SITIO</div>
+            <div class="unit-card" onclick="openFolder('Bryaan Gomez', 'roster')">🎙️ BRYAAN GOMEZ</div>
+        </aside>
+
+        <main class="main-dashboard" id="main-dashboard-area">
+            
+            <div style="display:flex; justify-content:space-between; margin-bottom: 40px; position:relative; z-index:100; flex-wrap:wrap; gap:10px;">
+                <div style="display:flex; gap:10px; width:100%; max-width:450px; background:rgba(0,0,0,0.5); padding:5px; border-radius:500px; border:1px solid rgba(255,255,255,0.1);">
+                   <input type="text" id="video-url" placeholder="Paste YouTube Link or Handle..." style="width:100%; font-size:12px; padding:10px 20px; margin:0; border:none; background:transparent;">
+                   <button class="btn-metallic" style="margin:0; padding:10px 25px;" onclick="spawnVideoUI()">HOLO-VIDEO</button>
+                </div>
+            </div>
+
+            <div class="dash-grid" id="standard-dash-grid">
+
+                <div class="dash-module" style="border-color:rgba(255, 136, 0, 0.4); grid-column: 1 / -1;">
+                    <div class="module-title" style="color:var(--arch-orange); border-bottom-color:rgba(255,136,0,0.2);">
+                        <span>⚙️ ARCHITECT (MAINTENANCE AI)</span>
+                        <span style="font-size:10px; color:#aaa; letter-spacing:1px;">REDUNDANCY SYSTEM: ACTIVE</span>
+                    </div>
+                    <p style="font-size:11px; color:#888; margin-bottom:15px;">Self-repairing diagnostic robot. Monitors errors and requests cloud fixes.</p>
+                    <div id="architect-logs" style="height:120px; overflow-y:auto; background:#050505; border:1px solid rgba(255,136,0,0.3); padding:15px; font-family:var(--font-mono); font-size:11px; color:var(--arch-orange); margin-bottom:15px; border-radius:8px; line-height:1.6;">> ARCHITECT ONLINE. SYSTEM NOMINAL.<br></div>
+                    <button class="btn-metallic" style="width:100%; background:linear-gradient(135deg, #ff8800, #aa5500); color:#fff;" onclick="runMaintenanceScan()">INITIATE DIAGNOSTIC DEEP SCAN</button>
+                </div>
+                
+                <div class="dash-module" style="grid-column: 1 / -1;">
+                    <div class="module-title" style="border:none; margin:0; display:flex; justify-content:space-between; align-items:center;">
+                        <span>GLOBAL INDUSTRY INTEL</span>
+                        <button class="btn-metallic" style="background:var(--white-text); margin:0; padding:8px 20px;" onclick="analyzeNewsTrend()">🧠 AI STRATEGY</button>
+                    </div>
+                    <div id="news-ai-output" style="max-height: 250px; overflow-y: auto; margin-top: 15px; font-size: 13px; color: #ddd; display: none; background: rgba(0,0,0,0.3); padding: 20px; line-height: 1.6; border-radius: 12px; border-left:3px solid var(--white-text); margin-bottom:20px;"></div>
+                    <div id="dashboard-news-feed" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:15px; max-height:300px; overflow-y:auto; padding-right:10px;">
+                        <p style="color:#888; font-size:12px;">SYNCING GLOBAL RSS...</p>
+                    </div>
+                </div>
+
+                <div class="dash-module" style="border-color:var(--gold-solid);">
+                    <div class="module-title" style="color:var(--gold-solid); border:none; margin:0; display:flex; justify-content:space-between; align-items:center;">
+                        <span>LANA (CENTRAL COMMAND)</span>
+                    </div>
+                    <p style="font-size:11px; color:#888; margin-bottom:15px; margin-top:15px;">Executive strategic assistant.</p>
+                    <div id="lana-chat-log" class="ai-chat-log">
+                        <div class="ai-chat-bubble">> LANA ONLINE. AWAITING INSTRUCTIONS.</div>
+                    </div>
+                    <div class="ai-input-container">
+                        <div style="flex:1; display:flex; flex-direction:column;">
+                            <textarea id="lana-prompt" placeholder="Ask Lana for strategic guidance..."></textarea>
+                        </div>
+                        <button class="ai-send-btn" onclick="sendLanaPrompt()">➤</button>
+                    </div>
+                </div>
+
+                <div class="dash-module" style="border-color:rgba(255,0,0,0.3);">
+                    <div class="module-title" style="color:var(--danger-red); border:none; margin:0; display:flex; justify-content:space-between; align-items:center;">
+                        <span>LEGAL COUNSEL (HENRY)</span>
+                    </div>
+                    <p style="font-size:11px; color:#888; margin-bottom:15px; margin-top:15px;">30yr specialized AI. Attach contracts or ask queries.</p>
+                    <div id="henry-chat-log" class="ai-chat-log">
+                        <div class="ai-chat-bubble" style="border-left-color:var(--danger-red);">> HENRY ONLINE. STATE YOUR LEGAL INQUIRY.</div>
+                    </div>
+                    <div class="ai-input-container" style="border-color:rgba(255,0,0,0.3);">
+                        <label class="ai-icon-btn" style="color:var(--danger-red);" title="Attach Document">
+                            📎 <input type="file" id="legal-file" accept=".pdf, .txt, image/*" style="display:none;" onchange="document.getElementById('legal-file-name').innerText = this.files[0].name;">
+                        </label>
+                        <div style="flex:1; display:flex; flex-direction:column;">
+                            <span id="legal-file-name" style="font-size:10px; color:var(--danger-red); margin-bottom:5px;"></span>
+                            <textarea id="legal-query" placeholder="Ask Counsel..."></textarea>
+                        </div>
+                        <button class="ai-send-btn" style="background:var(--danger-red); color:#fff;" onclick="sendHenryPrompt()">➤</button>
+                    </div>
+                </div>
+
+                <div class="dash-module">
+                    <div class="module-title">VIRAL ALGORITHM (VIRA)</div>
+                    <p style="font-size:11px; color:#888; margin-bottom:15px;">Input concept. AI calculates optimal Hook, Hashtags, and Trend.</p>
+                    <input type="text" id="viral-target" placeholder="Target Niche (e.g. Regional Mexican)" style="margin-bottom:10px;">
+                    <div class="ai-input-container">
+                        <div style="flex:1; display:flex; flex-direction:column;">
+                            <textarea id="viral-concept" placeholder="Describe the video idea..."></textarea>
+                        </div>
+                        <button class="ai-send-btn" onclick="generateViralStrategy()">➤</button>
+                    </div>
+                    <div id="viral-output" class="contained-output" style="border-left:3px solid var(--gold-solid); margin-top: 15px; display:none; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px;"></div>
+                </div>
+
+                <div class="dash-module" style="border-color:rgba(0, 255, 255, 0.3);">
+                    <div class="module-title" style="color:var(--scout-blue);">A&R SCOUT (ECHO)</div>
+                    <p style="font-size:11px; color:#888; margin-bottom:15px;">AI analyzes artist potential, sonic profile, and market fit.</p>
+                    <input type="text" id="echo-artist" placeholder="Artist Name / Streaming URL" style="margin-bottom:10px;">
+                    <div class="ai-input-container" style="border-color:rgba(0,255,255,0.3);">
+                        <div style="flex:1; display:flex; flex-direction:column;">
+                            <textarea id="echo-concept" placeholder="Enter notes or metrics for evaluation..."></textarea>
+                        </div>
+                        <button class="ai-send-btn" style="background:var(--scout-blue); color:#000;" onclick="generateEchoStrategy()">➤</button>
+                    </div>
+                    <div id="echo-output" class="contained-output" style="border-left:3px solid var(--scout-blue); margin-top: 15px; display:none; padding:15px; background:rgba(0,0,0,0.3); border-radius: 8px;"></div>
+                </div>
+
+                <div class="dash-module" style="border-color:rgba(0, 255, 170, 0.3);">
+                    <div class="module-title" style="color:var(--mint-green);">FINANCE FORECASTER (MINT)</div>
+                    <p style="font-size:11px; color:#888; margin-bottom:15px;">AI projects ROI based on budget inputs and current streaming data.</p>
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <input type="number" id="mint-budget" placeholder="Input Budget ($)">
+                        <select id="mint-type" style="margin:0;"><option>Single Release</option><option>Music Video</option><option>Tour Block</option></select>
+                    </div>
+                    <div class="ai-input-container" style="border-color:rgba(0, 255, 170, 0.3);">
+                        <div style="flex:1; display:flex; flex-direction:column;">
+                            <textarea id="mint-concept" placeholder="Define the marketing strategy..."></textarea>
+                        </div>
+                        <button class="ai-send-btn" style="background:var(--mint-green); color:#000;" onclick="generateMintStrategy()">➤</button>
+                    </div>
+                    <div id="mint-output" class="contained-output" style="border-left:3px solid var(--mint-green); margin-top: 15px; display:none; padding:15px; background:rgba(0,0,0,0.3); border-radius: 8px;"></div>
+                </div>
+
+                <div class="dash-module">
+                    <div class="module-title">YOUTUBE ROSTER MONITOR</div>
+                    <div id="yt-monitor-list" style="max-height:300px; overflow-y:auto; margin-bottom:15px; padding-right:5px;"></div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="yt-channel-id" placeholder="URL, Handle (@), or ID" style="margin:0;">
+                        <button class="btn-metallic" style="margin:0; width:100px;" onclick="addYtChannel()">TRACK</button>
+                    </div>
+                </div>
+
+                <div class="dash-module">
+                    <div class="module-title">SYSTEM ACCESS LOGS</div>
+                    <div id="front-access-logs" style="max-height:300px; overflow-y:auto; font-size:12px; color:#aaa; line-height:1.8; padding-right:5px; font-family:var(--font-mono);">SYNCING CLOUD DATA...</div>
+                </div>
+            </div>
+
+            <div id="warfare-dashboard" style="display:none; position:relative; z-index:100;"></div>
+        </main>
+    </div>
+
+    <div id="folderOverlay" class="system-overlay">
+        <div class="folder-content">
+            <div class="folder-header-banner" id="folder-header-banner">
+                <img id="folder-header-img" src="" style="width:100%; height:100%; object-fit:cover; opacity:0.5; display:none;">
+                <div class="close-btn" onclick="closeSystemOverlay('folderOverlay')">CLOSE FOLDER</div>
+                <h2 id="folder-title" style="position:absolute; bottom:20px; left:30px; color:var(--white-text); font-size:32px; font-weight:800; letter-spacing:2px; margin:0; text-shadow: 0 4px 20px rgba(0,0,0,0.8); z-index:10;"></h2>
+                <div style="position:absolute; bottom:20px; right:20px; display:flex; gap:10px; z-index:10;">
+                    <button id="upload-icon-btn" class="btn-metallic" style="background:rgba(0,0,0,0.5); color:#fff; border:1px solid rgba(255,255,255,0.2); display:none;" onclick="document.getElementById('icon-upload').click()">UPDATE ICON</button>
+                    <button id="upload-header-btn" class="btn-metallic" style="background:rgba(0,0,0,0.5); color:#fff; border:1px solid rgba(255,255,255,0.2); display:none;" onclick="document.getElementById('header-upload').click()">UPDATE HEADER</button>
+                </div>
+                <input type="file" id="header-upload" style="display:none;" accept="image/*" onchange="compressAndUploadPic(event, 'header', 'folder-header-img')">
+                <input type="file" id="icon-upload" style="display:none;" accept="image/*" onchange="compressAndUploadPic(event, 'avatar', 'icon_folder')">
+            </div>
+            
+            <div class="folder-body-grid">
+                <nav class="folder-nav" id="folder-nav"></nav>
+                <section class="pane-main" id="pane-content"></section>
+            </div>
+        </div>
+    </div>
+
+    <div id="boardOverlay" class="system-overlay board-overlay">
+        <div class="board-toolbar">
+            <b id="board-title" style="color:var(--white-text); margin-right:20px; letter-spacing:2px; font-size:14px;">STORYBOARD</b>
+            <button class="btn-metallic" style="margin:0;" onclick="addSticky('#222')">+ ADD NOTE</button>
+            <button class="btn-metallic" style="margin:0; background:transparent; color:#f00; border-color:#f00;" onclick="clearBoard()">WIPE BOARD</button>
+            <div style="flex:1;"></div>
+            <button class="btn-metallic" style="margin:0;" onclick="saveBoard()">SAVE TO CLOUD</button>
+            <button class="btn-metallic" style="margin:0; background:var(--white-text); color:#000;" onclick="closeSystemOverlay('boardOverlay')">CLOSE</button>
+        </div>
+        <div class="board-canvas" id="board-canvas"></div>
+    </div>
+
+    <div id="floating-chat-widget" class="drag-window" style="bottom: 100px; right: 30px; width: 340px;">
+        <div class="drag-header" id="fc-header">
+            <span>💬 SECURE COMM-LINK</span>
+            <span style="cursor:pointer; color:#888; font-size:14px;" onclick="toggleFloatingChat()">✕</span>
+        </div>
+        <div class="fc-body" id="fc-body" style="height: 300px; overflow-y: auto; padding: 20px; font-size: 12px; background:rgba(0,0,0,0.5);">SYNCING...</div>
+        <div style="display:flex; padding:10px; background:#111; gap:10px; align-items:center;">
+            <input type="text" id="fc-input" placeholder="Transmit message..." style="margin:0; border:none; background:rgba(255,255,255,0.05); padding:10px; border-radius:20px;">
+            <button class="ai-send-btn" style="margin:0; width:30px; height:30px;" onclick="sendFloatingChat()">➤</button>
+        </div>
+    </div>
+
+    <div id="quick-dock">
+        <div class="dock-icon" title="Refresh UI" onclick="location.reload()">🔄</div>
+        <div class="dock-icon" title="Toggle Comm-Link" onclick="toggleFloatingChat()" style="border:none; background:rgba(255,255,255,0.1);">💬</div>
+        <div style="width: 1px; background: rgba(255,255,255,0.2); margin: 0 5px;"></div>
+        <div id="pinned-items" style="display:flex; gap:15px;"></div>
+    </div>
+
+    <canvas id="img-compressor" style="display:none;"></canvas>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEEeDecKAdsjCiJLSOoD833HRdU56gRhbl9JSom5yfHHhEimf_9vSmAzlGA4VMB9Oo/exec'; 
+        
+        // --- BULLETPROOF ENCRYPTION SYSTEM ---
+        function safeEncode(str) {
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                return String.fromCharCode('0x' + p1);
+            }));
+        }
+        function safeDecode(str) {
+            return decodeURIComponent(atob(str).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+        }
+        
+        function checkApiError(data) {
+            if(data.error) {
+                if(data.error.message && data.error.message.includes("API key not valid")) {
+                    return `CRITICAL BACKEND ERROR: API Key invalid or expired. Open your Google Apps Script and update your API key.`;
+                }
+                return `API ERROR: ${data.error.message}`;
+            }
+            return false;
+        }
+
+        let currentUserRole = "viewer"; 
+        let currentUserName = "Guest";
+        let currentEntity = "";
+        let currentTabType = "";
+        let currentBoard = "";
+        let pinned = JSON.parse(localStorage.getItem('pinned')) || [];
+        let globalProfiles = {};
+        
+        let warfareActive = false;
+        let commsPollInterval = null;
+
+        window.matrixErrors = [];
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            let errStr = `[FAULT] Line ${lineNo}: ${msg}`;
+            window.matrixErrors.push(errStr);
+            let logBox = document.getElementById('architect-logs');
+            if(logBox) { logBox.innerHTML += `<br><span style="color:var(--danger-red);">${errStr}</span>`; logBox.scrollTop = logBox.scrollHeight; }
+            return false; 
+        };
+
+        document.querySelectorAll('textarea').forEach(el => {
+            el.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; });
+        });
+
+        window.onload = () => {
+            let savedRole = sessionStorage.getItem('matrix_role');
+            let savedName = sessionStorage.getItem('matrix_name');
+            if(savedRole && savedName) {
+                currentUserRole = savedRole; currentUserName = savedName;
+                document.getElementById('auth-gateway').style.display = 'none';
+                completeBoot();
+            } else { document.getElementById("matrix-pass").focus(); }
+        };
+
+        function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('open'); }
+        function toggleWarfareMode() { document.body.classList.toggle('warfare-mode'); }
+
+        async function fetchAPI(action, extraParams = "", specificEntity = null) { 
+            let targetEntity = specificEntity || currentEntity;
+            try { 
+                let res = await fetch(`${SCRIPT_URL}?action=${action}&entity=${encodeURIComponent(targetEntity)}${extraParams}`); 
+                if (!res.ok) return null;
+                let text = await res.text();
+                return text ? JSON.parse(text) : null; 
+            } catch(e) { window.matrixErrors.push(`API FETCH FAIL: ${action}`); return null; } 
+        }
+
+        async function initiateDecryption() {
+            const passInput = document.getElementById('matrix-pass'); const btn = document.getElementById('auth-btn');
+            const code = passInput.value; if(!code) return;
+
+            btn.innerText = "VERIFYING NEURAL LINK..."; btn.disabled = true;
+            try {
+                let res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'login', pass: code }) });
+                let text = await res.text();
+                let json = text ? JSON.parse(text) : { success: false };
+                
+                if(json.success) {
+                    currentUserRole = json.role; currentUserName = json.name;
+                    btn.innerText = "IDENTITY VERIFIED"; btn.style.background = "var(--white-text)"; btn.style.color = "#000";
+                    sessionStorage.setItem('matrix_role', currentUserRole); sessionStorage.setItem('matrix_name', currentUserName);
+                    document.querySelector('.auth-title').classList.add('sweep-left'); 
+                    setTimeout(() => { document.getElementById('auth-gateway').style.display = 'none'; completeBoot(); }, 500); 
+                } else {
+                    passInput.value = ""; passInput.focus(); btn.disabled = false; btn.innerText = "DECRYPT PROTOCOL";
+                    document.getElementById('auth-console').innerHTML = `> <span style="color:var(--danger-red)">ERROR 403: IDENTITY REJECTED.</span>`; 
+                }
+            } catch(e) { btn.disabled = false; btn.innerText = "DECRYPT PROTOCOL"; document.getElementById('auth-console').innerHTML = `> <span style="color:var(--danger-red)">CRITICAL SERVER FAULT. Ensure Google Apps Script 'Who Has Access' is set to 'Anyone'.</span>`; }
+        }
+        document.getElementById("matrix-pass").addEventListener("keypress", function(e) { if (e.key === "Enter") initiateDecryption(); });
+
+        async function loadNewsFeed() { 
+            const feed = document.getElementById('dashboard-news-feed');
+            if(!feed) return;
+            feed.innerHTML = `
+            <div class="data-card" style="padding:15px;"><b style="color:var(--gold-solid);">Billboard</b><br><span style="font-size:12px;color:#ccc;">Regional Mexican Music sees 40% YoY growth globally on leading streaming platforms.</span></div>
+            <div class="data-card" style="padding:15px;"><b style="color:var(--gold-solid);">Music Business Worldwide</b><br><span style="font-size:12px;color:#ccc;">Social algorithms shift focus back to 1-minute+ original audio content for engagement.</span></div>
+            <div class="data-card" style="padding:15px;"><b style="color:var(--gold-solid);">Digital Music News</b><br><span style="font-size:12px;color:#ccc;">Live touring reports record-breaking Q1 for Latin artists across North America.</span></div>`;
+        }
+        
+        async function analyzeNewsTrend() { 
+            const out = document.getElementById('news-ai-output');
+            out.style.display = 'block'; out.innerHTML = "🕷️ Super-weaving quantum threads...";
+            let systemContext = `You are an elite Music Industry Analyst AI for CROWN OS. Read the current market landscape for Regional Mexican music and suggest one aggressive marketing strategy for our roster. Keep it concise.`;
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'ai_prompt', systemContext: systemContext, contents: [{parts:[{text: "Analyze current market trends."}]}] }) });
+                const data = await response.json();
+                if(data.error) out.innerHTML = `<span style="color:var(--danger-red)">API ERROR: ${data.error.message}</span>`;
+                else out.innerHTML = data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--gold-solid)">$1</b>');
+            } catch(e) { out.innerHTML = "ALGORITHM SYNC FAILED."; }
+        }
+
+        async function loopPollGlobalChat() {
+            if(commsPollInterval) clearInterval(commsPollInterval);
+            pollGlobalChat();
+            commsPollInterval = setInterval(pollGlobalChat, 10000); 
+        }
+
+        async function pollGlobalChat() {
+            let d = await fetchAPI('getComms');
+            if(!d || !d.chat) return;
+            
+            let chatHtml = "";
+            d.chat.forEach(c => {
+                let isMe = c.user === currentUserName;
+                let bubbleClass = isMe ? 'user-chat-bubble' : 'ai-chat-bubble';
+                let align = isMe ? 'right' : 'left';
+                let color = isMe ? '#aaa' : '#eee';
+                let borderCol = isMe ? '#555' : 'var(--gold-solid)';
+                chatHtml += `<div style="text-align:${align}; margin-bottom:5px;"><span style="font-size:9px; color:#666;">${c.user} - ${new Date(c.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
+                chatHtml += `<div class="${bubbleClass}" style="border-left-color:${borderCol}; border-right-color:${borderCol}; display:inline-block; text-align:left; color:${color};">${c.msg}</div><div style="clear:both;"></div>`;
+            });
+
+            const chatBox = document.getElementById('chat-box');
+            const fcBody = document.getElementById('fc-body');
+            
+            if(chatBox && chatBox.innerHTML !== chatHtml) { chatBox.innerHTML = chatHtml; chatBox.scrollTop = chatBox.scrollHeight; }
+            if(fcBody && fcBody.innerHTML !== chatHtml) { fcBody.innerHTML = chatHtml; fcBody.scrollTop = fcBody.scrollHeight; }
+        }
+
+        function toggleFloatingChat() {
+            let fc = document.getElementById('floating-chat-widget');
+            fc.style.display = (fc.style.display === 'none' || fc.style.display === '') ? 'flex' : 'none';
+            if(fc.style.display === 'flex') { document.getElementById('fc-input').focus(); pollGlobalChat(); }
+        }
+
+        async function sendFloatingChat() {
+            let msg = document.getElementById('fc-input').value; if(!msg) return; 
+            document.getElementById('fc-input').value = "";
+            let fcBody = document.getElementById('fc-body');
+            fcBody.innerHTML += `<div style="text-align:right; margin-bottom:5px;"><span style="font-size:9px; color:#666;">${currentUserName} - Just now</span></div><div class="user-chat-bubble" style="display:inline-block; text-align:left;">${msg}</div><div style="clear:both;"></div>`;
+            fcBody.scrollTop = fcBody.scrollHeight;
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'chat', user: currentUserName, message: msg }) });
+            pollGlobalChat();
+        }
+
+        async function runMaintenanceScan() {
+            let logBox = document.getElementById('architect-logs');
+            logBox.innerHTML += `<br>> INITIATING DEEP MATRIX SCAN...<br>> SYNCING LOGS TO SERVER...`;
+            logBox.scrollTop = logBox.scrollHeight;
+            
+            let payloadLogs = window.matrixErrors.length > 0 ? window.matrixErrors.join(" | ") : "System architecture is stable. No frontend faults detected.";
+            
+            try {
+                let response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'maintenance_scan', logs: payloadLogs }) });
+                let data = await response.json();
+                if(data.error) {
+                    logBox.innerHTML += `<br><span style="color:var(--danger-red);">> ARCHITECT CORE OFFLINE: ${data.error.message}</span>`;
+                } else {
+                    let ans = data.candidates[0].content.parts[0].text;
+                    logBox.innerHTML += `<br><span style="color:#0f0;">> ANALYSIS COMPLETE.</span><br><br>${ans}`;
+                    window.matrixErrors = [];
+                }
+            } catch(e) {
+                logBox.innerHTML += `<br><span style="color:var(--danger-red);">> CONNECTION LOST.</span>`;
+            }
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function openProjectBoard(b64Title) {
+            let title = safeDecode(b64Title);
+            currentBoard = 'board_' + currentEntity + '_' + title;
+            document.getElementById('board-title').innerText = title.toUpperCase() + " STORYBOARD";
+            openSystemOverlay('boardOverlay'); loadBoard();
+        }
+
+        function addSticky(color) {
+            let canvas = document.getElementById('board-canvas'); let id = 'sticky-' + Date.now(); let div = document.createElement('div');
+            div.className = 'sticky-note'; div.id = id; div.style.left = '50px'; div.style.top = '50px'; div.style.backgroundColor = color;
+            div.innerHTML = `<div class="sticky-header" id="${id}-header"><span style="cursor:pointer; color:#888; font-size:12px;" onclick="this.parentElement.parentElement.remove()">✕</span></div><textarea class="sticky-text" placeholder="Type notes here..."></textarea>`;
+            canvas.appendChild(div); makeDraggable(div, document.getElementById(`${id}-header`));
+        }
+
+        function saveBoard() {
+            let canvas = document.getElementById('board-canvas'); let stickies = [];
+            canvas.querySelectorAll('.sticky-note').forEach(el => { stickies.push({ id: el.id, left: el.style.left, top: el.style.top, bg: el.style.backgroundColor, text: el.querySelector('textarea').value }); });
+            localStorage.setItem(currentBoard, JSON.stringify(stickies));
+            let btn = event.target; let orig = btn.innerText; btn.innerText = "SAVED TO MEMORY!"; setTimeout(() => btn.innerText = orig, 1500);
+        }
+
+        function loadBoard() {
+            let canvas = document.getElementById('board-canvas'); canvas.innerHTML = "";
+            let saved = JSON.parse(localStorage.getItem(currentBoard)) || [];
+            saved.forEach(s => {
+                let div = document.createElement('div'); div.className = 'sticky-note'; div.id = s.id; div.style.left = s.left; div.style.top = s.top; div.style.backgroundColor = s.bg || '#222';
+                div.innerHTML = `<div class="sticky-header" id="${s.id}-header"><span style="cursor:pointer; color:#888; font-size:12px;" onclick="this.parentElement.parentElement.remove()">✕</span></div><textarea class="sticky-text" placeholder="Type notes here...">${s.text}</textarea>`;
+                canvas.appendChild(div); makeDraggable(div, document.getElementById(`${s.id}-header`));
+            });
+        }
+
+        function clearBoard() { if(confirm("Wipe this entire storyboard?")) { document.getElementById('board-canvas').innerHTML = ""; localStorage.removeItem(currentBoard); } }
+
+        window.renderCalendar = function() {
+            const cc = document.getElementById('cal-container'); const monthInput = document.getElementById('cal-month-select');
+            if(!cc || !monthInput) return;
+            const [year, month] = monthInput.value.split('-');
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const firstDay = new Date(year, month - 1, 1).getDay();
+            
+            let html = '<div style="display:grid; grid-template-columns: repeat(7, 1fr); gap:10px; color:#fff;">';
+            html += '<div style="font-weight:bold; color:#888; font-size:11px; text-align:center;">SUN</div><div style="font-weight:bold; color:#888; font-size:11px; text-align:center;">MON</div><div style="font-weight:bold; color:#888; font-size:11px; text-align:center;">TUE</div><div style="font-weight:bold; color:#888; font-size:11px; text-align:center;">WED</div><div style="font-weight:bold; color:#888; font-size:11px; text-align:center;">THU</div><div style="font-weight:bold; color:#888; font-size:11px; text-align:center;">FRI</div><div style="font-weight:bold; color:#888; font-size:11px; text-align:center;">SAT</div>';
+            
+            for(let i=0; i<firstDay; i++) { html += '<div></div>'; } 
+            
+            for(let i=1; i<=daysInMonth; i++) {
+                let currentDayStr = `${year}-${month}-${i.toString().padStart(2, '0')}`;
+                let dayEvents = window.currentCalendarData ? window.currentCalendarData.filter(e => e.date && e.date.startsWith(currentDayStr)) : [];
+                let eventHtml = '';
+                dayEvents.forEach(ev => {
+                    let colorCode = ev.color === 'red' ? 'var(--danger-red)' : (ev.color === 'gold' ? 'var(--gold-solid)' : '#888');
+                    eventHtml += `<div style="background:${colorCode}; color:#000; font-size:10px; padding:4px 6px; margin-top:5px; border-radius:4px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${ev.note}">${ev.note}</div>`;
+                });
+                html += `<div style="background:rgba(255,255,255,0.05); padding:10px; min-height:80px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);"><div style="color:#aaa; font-size:12px; margin-bottom:5px;">${i}</div>${eventHtml}</div>`;
+            }
+            html += '</div>'; cc.innerHTML = html;
+        }
+
+        async function completeBoot() {
+            document.getElementById('top-profile-sec').style.display = 'flex';
+            if(window.innerWidth > 768) document.getElementById('profile-text-info').style.display = 'block';
+            
+            document.getElementById('profile-name').innerText = currentUserName.toUpperCase();
+            document.getElementById('profile-role').innerText = currentUserRole === 'admin' ? 'CHIEF EXECUTIVE OFFICER' : (currentUserRole === 'CTO' ? 'CHIEF TECHNOLOGY OFFICER' : 'OPERATIVE');
+            
+            if(currentUserRole === 'admin') document.getElementById('nuke-btn').style.display = 'block';
+            if(currentUserRole === 'operative') {
+                document.getElementById('operative-workspace-container').style.display = 'block';
+                let opCompany = localStorage.getItem('operative_company');
+                if(opCompany) addOperativeCompanyToSidebar(opCompany);
+            }
+
+            renderDock(); 
+            
+            Promise.all([ loadNewsFeed(), loadYtMonitor(), loopPollGlobalChat(), fetchAPI('getProfiles') ]).then((results) => {
+                let pRes = results[3];
+                if(pRes && typeof pRes === 'object') {
+                    globalProfiles = pRes;
+                    if(globalProfiles[currentUserName] && globalProfiles[currentUserName].avatar) { document.getElementById('profile-pic-img').src = globalProfiles[currentUserName].avatar; }
+                } else { globalProfiles = {}; }
+                if(!globalProfiles[currentUserName] && currentUserRole === 'operative') { document.getElementById('setup-modal').style.display = 'flex'; }
+                updateSidebarIcons();
+            }).catch(e => { globalProfiles = {}; });
+        }
+
+        function finalizeSetup() { let bio = document.getElementById('setup-bio').value; fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'bio', user: currentUserName, bio: bio }) }); document.getElementById('setup-modal').style.display = 'none'; }
+        function systemLogout() { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'status', user: currentUserName, status: 'OFFLINE' }) }); sessionStorage.clear(); location.reload(); }
+
+        function updateSidebarIcons() {
+            document.querySelectorAll('.unit-card').forEach(card => {
+                let onclick = card.getAttribute('onclick');
+                if(onclick && onclick.includes("openFolder('")) {
+                    let entity = onclick.split("openFolder('")[1].split("'")[0];
+                    if(globalProfiles['icon_' + entity] && globalProfiles['icon_' + entity].avatar) {
+                        let textName = card.innerText.replace(/[^A-Za-z0-9 '\-]/g, '').trim();
+                        card.innerHTML = `<img src="${globalProfiles['icon_' + entity].avatar}"> ${textName.toUpperCase()}`;
+                    }
+                }
+            });
+        }
+
+        function compressAndUploadPic(e, type, targetImgId) {
+            let file = e.target.files[0]; if(!file) return; let reader = new FileReader();
+            reader.onload = function(event) {
+                let img = new Image(); img.onload = function() {
+                    let canvas = document.getElementById('img-compressor'); let ctx = canvas.getContext('2d');
+                    let maxWidth = type === 'avatar' ? 100 : 500; let scaleSize = maxWidth / img.width;
+                    canvas.width = maxWidth; canvas.height = img.height * scaleSize;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    let base64 = canvas.toDataURL("image/jpeg", 0.5); 
+                    
+                    if(targetImgId !== 'icon_folder') document.getElementById(targetImgId).src = base64;
+                    if(targetImgId === 'folder-header-img') document.getElementById(targetImgId).style.display='block';
+                    
+                    let saveUser = currentUserName; if(targetImgId === 'icon_folder') saveUser = 'icon_' + currentEntity;
+                    if(!globalProfiles[saveUser]) globalProfiles[saveUser] = {}; globalProfiles[saveUser][type] = base64;
+                    if(targetImgId === 'icon_folder') updateSidebarIcons();
+                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'profile_update', user: saveUser, [type]: base64 }) });
+                }; img.src = event.target.result;
+            }; reader.readAsDataURL(file);
+        }
+
+        function canEdit() { return currentUserRole === 'admin' || (currentUserName === 'Joel' && currentEntity === 'TechoftheCoast') || (currentUserRole === 'operative' && currentEntity === localStorage.getItem('operative_company')); }
+
+        function makeDraggable(elmnt, handle) {
+            var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0; if (!handle) handle = elmnt; handle.onmousedown = dragMouseDown;
+            function dragMouseDown(e) { if(e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return; e = e || window.event; e.preventDefault(); pos3 = e.clientX; pos4 = e.clientY; document.onmouseup = closeDragElement; document.onmousemove = elementDrag; }
+            function elementDrag(e) { e = e || window.event; e.preventDefault(); pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; pos3 = e.clientX; pos4 = e.clientY; elmnt.style.top = (elmnt.offsetTop - pos2) + "px"; elmnt.style.left = (elmnt.offsetLeft - pos1) + "px"; elmnt.style.bottom = "auto"; elmnt.style.right = "auto"; }
+            function closeDragElement() { document.onmouseup = null; document.onmousemove = null; }
+        }
+        makeDraggable(document.getElementById("floating-chat-widget"), document.getElementById("fc-header"));
+
+        function renderDock() {
+            const container = document.getElementById('pinned-items'); if(!container) return; container.innerHTML = "";
+            pinned.forEach(p => { const div = document.createElement('div'); div.className = 'dock-icon'; div.title = p; div.innerHTML = `${p.charAt(0)}<button class="unpin-x" onclick="event.stopPropagation(); unpin('${p}')">x</button>`; div.onclick = () => { openFolder(p, 'structure'); }; container.appendChild(div); });
+        }
+        function unpin(p) { pinned = pinned.filter(x => x !== p); localStorage.setItem('pinned', JSON.stringify(pinned)); renderDock(); }
+        function pinToggle() { if (!pinned.includes(currentEntity)) { pinned.push(currentEntity); localStorage.setItem('pinned', JSON.stringify(pinned)); renderDock(); closeSystemOverlay('folderOverlay'); } }
+
+        function initWorkspace() { let comp = prompt("Enter the name of your Company/Workspace:"); if(comp) { localStorage.setItem('operative_company', comp); addOperativeCompanyToSidebar(comp); } }
+        function addOperativeCompanyToSidebar(compName) { let container = document.getElementById('operative-workspace-container'); let div = document.createElement('div'); div.className = "unit-card"; div.innerHTML = `📁 ${compName.toUpperCase()}`; div.onclick = () => { openFolder(compName, 'structure'); }; container.appendChild(div); }
+        
+        async function sendLanaPrompt() {
+            const input = document.getElementById('lana-prompt'); const text = input.value.trim(); if(!text) return;
+            const log = document.getElementById('lana-chat-log');
+            log.innerHTML += `<div class="user-chat-bubble">${text}</div>`; input.value = ""; input.style.height='auto'; log.scrollTop = log.scrollHeight;
+            const loadId = "load-" + Date.now(); log.innerHTML += `<div id="${loadId}" class="ai-chat-bubble" style="color:#888;">🕷️ Super-weaving quantum threads...</div>`; log.scrollTop = log.scrollHeight;
+            
+            let matrixContext = `You are Lana, the CROWN OS Executive Assistant. Current User: ${currentUserName} (Role: ${currentUserRole.toUpperCase()}). Current Active View/Folder: ${currentEntity || 'Central Command Main Dashboard'}. Current Tab Type: ${currentTabType || 'Overview'}. Keep your responses formatted nicely, highly analytical, and tailored to the music/entertainment management industry.`;
+            try {
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'ai_prompt', systemContext: matrixContext, contents: [{parts:[{text: text}]}] }) });
+                const data = await res.json(); document.getElementById(loadId).remove();
+                if(data.error) { log.innerHTML += `<div class="ai-chat-bubble" style="color:var(--danger-red);">> API ERROR: ${data.error.message}</div>`; window.matrixErrors.push(data.error.message); } 
+                else { const ans = data.candidates[0].content.parts[0].text; log.innerHTML += `<div class="ai-chat-bubble">${ans.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--gold-solid)">$1</b>')}</div>`; }
+            } catch(e) { document.getElementById(loadId).remove(); log.innerHTML += `<div class="ai-chat-bubble" style="color:var(--danger-red);">> CRITICAL FAILURE.</div>`; window.matrixErrors.push(e.toString()); }
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function sendHenryPrompt() {
+            const query = document.getElementById('legal-query').value; const fileInput = document.getElementById('legal-file');
+            const log = document.getElementById('henry-chat-log'); if(!query && fileInput.files.length === 0) return;
+            
+            log.innerHTML += `<div class="user-chat-bubble">${query || 'Attached Document'}</div>`; 
+            document.getElementById('legal-query').value = ""; document.getElementById('legal-file-name').innerText = ""; log.scrollTop = log.scrollHeight;
+            let systemContext = `You are Henry, CROWN OS Legal Counsel. A ruthless, highly advanced AI with 30 years of experience in Music, Civil, and Criminal Law. Identify anomalies, loopholes, and provide strategic advice. Current entity being reviewed: ${currentEntity || 'General Matrix'}.`;
+            let parts = [{ text: query || "Review this document." }];
+            const loadId = "load-" + Date.now(); log.innerHTML += `<div id="${loadId}" class="ai-chat-bubble" style="border-left-color:var(--danger-red); color:#888;">🕷️ Super-weaving quantum threads...</div>`; log.scrollTop = log.scrollHeight;
+            
+            if(fileInput.files.length > 0) {
+                let file = fileInput.files[0];
+                if(file.type === 'text/plain') { let reader = new FileReader(); reader.onload = async function(e) { parts[0].text += `\n\nDOCUMENT CONTENT:\n${e.target.result}`; await executeHenryCall(parts, systemContext, log, loadId); }; reader.readAsText(file); } 
+                else { let reader = new FileReader(); reader.onload = async function(e) { let base64Data = e.target.result.split(',')[1]; parts.push({ inlineData: { mimeType: file.type, data: base64Data } }); await executeHenryCall(parts, systemContext, log, loadId); }; reader.readAsDataURL(file); }
+            } else { await executeHenryCall(parts, systemContext, log, loadId); }
+            fileInput.value = "";
+        }
+
+        async function executeHenryCall(parts, systemContext, log, loadId) {
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'ai_prompt', systemContext: systemContext, contents: [{parts: parts}] }) });
+                const data = await response.json(); document.getElementById(loadId).remove();
+                if(data.error) { log.innerHTML += `<div class="ai-chat-bubble" style="border-left-color:var(--danger-red); color:var(--danger-red);">API ERROR: ${data.error.message}</div>`; window.matrixErrors.push(data.error.message); }
+                else { let ans = data.candidates[0].content.parts[0].text; log.innerHTML += `<div class="ai-chat-bubble" style="border-left-color:var(--danger-red);">${ans.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--white-text)">$1</b>')}</div>`; }
+            } catch(e) { document.getElementById(loadId).remove(); log.innerHTML += `<div class="ai-chat-bubble" style="border-left-color:var(--danger-red); color:var(--danger-red);">SYNC FAILED.</div>`; window.matrixErrors.push(e.toString()); }
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function generateViralStrategy() {
+            const tgt = document.getElementById('viral-target').value; const concept = document.getElementById('viral-concept').value; const out = document.getElementById('viral-output'); 
+            if(!concept) return; out.style.display = 'block'; out.innerHTML = "🕷️ Charlotte's Web: Superpositioning data streams...";
+            let systemContext = `Act as Vira, an elite Social Media Manager and Algorithm Expert. Output a formatted strategy: 1. Text Hook. 2. Audio trend suggestion. 3. Caption structure. 4. 5 hashtag clusters. Keep it short.`;
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'ai_prompt', systemContext: systemContext, contents: [{parts:[{text: `Target Niche: ${tgt}. Concept: ${concept}.`}]}] }) });
+                const data = await response.json();
+                if(data.error) out.innerHTML = `<span style="color:var(--danger-red)">ERROR: ${data.error.message}</span>`;
+                else out.innerHTML = data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--gold-solid)">$1</b>');
+            } catch(e) { out.innerHTML = "ALGORITHM SYNC FAILED."; window.matrixErrors.push(e.toString()); }
+        }
+
+        async function generateEchoStrategy() {
+            const artist = document.getElementById('echo-artist').value; const concept = document.getElementById('echo-concept').value; const out = document.getElementById('echo-output');
+            if(!artist) return; out.style.display = 'block'; out.innerHTML = "📡 ECHO: Scanning market frequencies...";
+            let systemContext = `Act as ECHO, an elite A&R and Talent Scout AI for CROWN OS. Analyze the artist based on the input and provide: 1. Market Fit 2. Sonic Profile 3. Suggested Development Strategy. Keep it punchy and analytical.`;
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'ai_prompt', systemContext: systemContext, contents: [{parts:[{text: `Artist: ${artist}. Notes/Metrics: ${concept}.`}]}] }) });
+                const data = await response.json();
+                if(data.error) out.innerHTML = `<span style="color:var(--danger-red)">ERROR: ${data.error.message}</span>`;
+                else out.innerHTML = data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--scout-blue)">$1</b>');
+            } catch(e) { out.innerHTML = "ECHO ALGORITHM SYNC FAILED."; window.matrixErrors.push(e.toString()); }
+        }
+
+        async function generateMintStrategy() {
+            const budget = document.getElementById('mint-budget').value; const type = document.getElementById('mint-type').value; const concept = document.getElementById('mint-concept').value; const out = document.getElementById('mint-output');
+            if(!budget || !concept) return; out.style.display = 'block'; out.innerHTML = "💸 MINT: Calculating fiscal trajectories...";
+            let systemContext = `Act as MINT, the CROWN OS Financial Forecaster AI. You are analytical and realistic. Provide: 1. Recommended Budget Split (Ads, PR, Prod) 2. Projected ROI / Breakeven Point 3. Risk Assessment based on the provided strategy.`;
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'ai_prompt', systemContext: systemContext, contents: [{parts:[{text: `Total Budget: $${budget}. Event Type: ${type}. Strategy: ${concept}.`}]}] }) });
+                const data = await response.json();
+                if(data.error) out.innerHTML = `<span style="color:var(--danger-red)">ERROR: ${data.error.message}</span>`;
+                else out.innerHTML = data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b style="color:var(--mint-green)">$1</b>');
+            } catch(e) { out.innerHTML = "MINT ALGORITHM SYNC FAILED."; window.matrixErrors.push(e.toString()); }
+        }
+
+        let ytCacheData = "";
+        async function loadYtMonitor() {
+            const list = document.getElementById('yt-monitor-list'); let channels = JSON.parse(localStorage.getItem('crown_yt_channels')) || [];
+            if(channels.length === 0) { list.innerHTML = "<p style='color:#888;font-size:11px;'>NO CHANNELS TRACKED.</p>"; return; }
+            if(ytCacheData) list.innerHTML = ytCacheData; else list.innerHTML = "<p style='color:var(--gold-solid);font-size:11px;'>🕷️ Weaving channel data through backend...</p>";
+            
+            let promises = channels.map(async c => {
+                try {
+                    let res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'yt_fetch', handle: c }) });
+                    let data = await res.json();
+                    if(data && data.items && data.items.length > 0) {
+                        let item = data.items[0];
+                        return `<div style="display:flex; gap:15px; align-items:center; background:rgba(0,0,0,0.5); padding:15px; margin-bottom:10px; border-radius:12px; transition:0.2s;"><img src="${item.snippet.thumbnails.default.url}" style="width:45px; height:45px; border-radius:50%; object-fit:cover;"><div style="flex:1; min-width:0;"><b style="color:var(--white-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; font-size:14px;">${item.snippet.title}</b><span style="font-size:11px; color:#888; font-weight:600;">Subs: <span style="color:var(--white-text);">${Number(item.statistics.subscriberCount).toLocaleString()}</span> | Views: <span style="color:var(--white-text);">${Number(item.statistics.viewCount).toLocaleString()}</span></span></div><button onclick="removeYtChannel('${c}')" style="background:transparent; border:none; color:#888; cursor:pointer; font-weight:bold; font-size:14px; padding:5px; transition:0.2s;" onmouseover="this.style.color='var(--danger-red)'" onmouseout="this.style.color='#888'">X</button></div>`;
+                    }
+                } catch(e) { window.matrixErrors.push(`YT Fetch err for ${c}`); } return "";
+            });
+            let results = await Promise.all(promises); let html = results.join('');
+            if(html === "") html = "<p style='color:var(--danger-red);font-size:11px;'>FAILED TO RESOLVE YT DATA.</p>";
+            ytCacheData = html; list.innerHTML = html;
+        }
+        
+        function addYtChannel() { 
+            let input = document.getElementById('yt-channel-id').value.trim(); if(!input) return; 
+            if(input.includes('youtube.com/')) { let parts = input.split('/'); let lastPart = parts[parts.length-1].split('?')[0]; if(input.includes('/@')) input = '@' + lastPart.replace('@',''); else input = lastPart;
+            } else if (!input.startsWith('@') && !input.startsWith('UC')) { input = '@' + input; }
+            let channels = JSON.parse(localStorage.getItem('crown_yt_channels')) || []; 
+            if(!channels.includes(input)) { channels.push(input); localStorage.setItem('crown_yt_channels', JSON.stringify(channels)); } 
+            document.getElementById('yt-channel-id').value = ""; loadYtMonitor(); 
+        }
+        function removeYtChannel(id) { let channels = JSON.parse(localStorage.getItem('crown_yt_channels')) || []; channels = channels.filter(c => c !== id); localStorage.setItem('crown_yt_channels', JSON.stringify(channels)); ytCacheData=""; loadYtMonitor(); }
+
+        function spawnVideoUI() {
+            let url = document.getElementById('video-url').value; if(!url) return; let videoId = ""; 
+            var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(shorts\/)|(watch\?))\??v?=?([^#&?]*).*/;
+            var match = url.match(regExp); if (match && match[8].length == 11) { videoId = match[8]; } else { alert("Invalid YouTube URL."); return; }
+            let vidId = "vid-" + Date.now(); let div = document.createElement('div'); div.id = vidId; div.className = "drag-window";
+            div.style.cssText += "display:flex; top:25%; left:50%; transform:translateX(-50%); width:90%; max-width:500px; height:320px; resize:both; overflow:hidden;";
+            div.innerHTML = `<div class="drag-header" id="${vidId}-header">HOLO-VIDEO FEED <span onclick="this.parentElement.parentElement.remove()" style="color:var(--danger-red); cursor:pointer;">X</span></div><iframe width="100%" height="calc(100% - 40px)" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allowfullscreen style="pointer-events:auto;"></iframe>`;
+            document.body.appendChild(div); makeDraggable(div, document.getElementById(`${vidId}-header`)); document.getElementById('video-url').value = "";
+        }
+
+        function openSystemOverlay(id) { document.querySelectorAll('.system-overlay').forEach(el => el.style.display = 'none'); document.getElementById(id).style.display = 'flex'; }
+        function closeSystemOverlay(id) { document.getElementById(id).style.display = 'none'; }
+        
+        function openFolder(name, type) {
+            currentEntity = name; currentTabType = type; openSystemOverlay('folderOverlay');
+            document.getElementById('folder-title').innerText = name.toUpperCase();
+            
+            let hdrImg = document.getElementById('folder-header-img'); let uploadBtn = document.getElementById('upload-header-btn'); let iconBtn = document.getElementById('upload-icon-btn');
+            if(globalProfiles[name] && globalProfiles[name].header) { hdrImg.src = globalProfiles[name].header; hdrImg.style.display = 'block'; } else { hdrImg.style.display = 'none'; }
+            if(canEdit() && type !== 'comms' && type !== 'news') { uploadBtn.style.display = 'block'; iconBtn.style.display = 'block'; } else { uploadBtn.style.display = 'none'; iconBtn.style.display = 'none'; }
+            buildNavMenu(); loadPane(type === 'comms' ? 'ExecDashboard' : 'Overview');
+            if(window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open');
+        }
+
+        function buildNavMenu() {
+            const nav = document.getElementById('folder-nav');
+            if(currentTabType === 'comms') { 
+                let teamHtml = (currentUserRole === 'admin' || currentUserRole === 'CTO') ? `<div class="nav-item" onclick="loadPane('TeamDash')">👥 OPERATIVE MANAGEMENT</div>` : '';
+                nav.innerHTML = `<div class="nav-item active" onclick="loadPane('ExecDashboard')">👁️ BOARD OVERVIEW</div><div class="nav-item" onclick="loadPane('SecureChat')">💬 SECURE CHANNEL</div>${teamHtml}`; 
+                return; 
+            }
+            let html = `<div class="nav-item" onclick="loadPane('Overview')">🌐 DASHBOARD</div><div class="nav-item" onclick="loadPane('Projects')">📋 PROJECTS TRACKER</div>`;
+            if (currentTabType === 'roster') { html += `<div class="nav-item" onclick="loadPane('Analytics')">📈 STREAMING DATA</div><div class="nav-item" onclick="loadPane('Releases')">📀 ADD RELEASES</div><div class="nav-item" onclick="loadPane('Library')">🎵 DISCOGRAPHY VAULT</div><div class="nav-item" onclick="loadPane('MarketData')">🧠 MARKET INTEL</div><div class="nav-item" onclick="loadPane('PitchBuilder')">✉️ PITCH MACHINE</div>`; } 
+            else if (currentTabType === 'structure') { 
+                html += `<div class="nav-item" onclick="loadPane('Budget')">💰 DYNAMIC BUDGETS</div><div class="nav-item" onclick="loadPane('VisualData')">🎬 VISUAL CALENDAR</div>`; 
+                if(currentEntity === 'TechoftheCoast' || currentEntity === localStorage.getItem('operative_company')) { html += `<div class="nav-item" onclick="loadPane('GearList')">⚙️ GEAR LIST</div><div class="nav-item" onclick="loadPane('WishList')">⭐ WISH LIST</div>`; }
+            }
+            let customFolders = JSON.parse(localStorage.getItem('custom_folders_' + currentEntity)) || [];
+            customFolders.forEach((folder, index) => { html += `<div class="nav-item" style="color:var(--roi-green)" onclick="loadCustomFolder(${index})">📁 ${folder.title.toUpperCase()} <span onclick="deleteCustomFolder(event, ${index})">❌</span></div>`; });
+            if(canEdit()) html += `<div class="nav-item" style="margin-top: 5px; color: var(--gold-solid);" onclick="loadPane('CustomGenerator')">➕ CREATE TAB</div>`;
+            html += `<div class="nav-item" onclick="pinToggle()">📌 PIN TO DOCK</div>`;
+            nav.innerHTML = html;
+        }
+
+        async function updateBio() {
+            let bio = document.getElementById('bio-' + currentUserName).value; let btn = event.target; btn.innerText = "UPDATING...";
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'bio', user: currentUserName, bio: bio }) });
+            btn.innerText = "BIO UPDATED"; setTimeout(() => btn.innerText = "UPDATE MY BIO", 2000);
+        }
+
+        async function loadPane(pane) {
+            const area = document.getElementById('pane-content');
+            area.innerHTML = "<div style='color:var(--gold-solid); text-align:center; padding:50px; font-weight:bold; letter-spacing:2px;'>ESTABLISHING CONNECTION TO CLOUD API...</div>";
+
+            if (pane === 'TeamDash') {
+                if(currentUserRole !== 'admin' && currentUserRole !== 'CTO') return;
+                let uData = await fetchAPI('getUsers'); if(!uData) return;
+                let genPass = "Studio" + Math.floor(1000 + Math.random()*9000);
+                let inviteHtml = `<div class="data-card"><h4>ISSUE CLEARANCE</h4>
+                    <input type="text" id="inv-name" placeholder="Operative Name"><input type="text" id="inv-email" placeholder="Operative Email">
+                    <div style="font-size:12px; color:var(--gold-solid); margin-bottom:15px;">AUTO-GEN CODE: <b>${genPass}</b></div>
+                    <button class="btn-metallic" onclick="sendInvite('${genPass}')">DISPATCH EMAIL INVITE</button></div>`;
+                let activeHtml = `<h4>ACTIVE OPERATIVES</h4>`;
+                uData.forEach(a => { 
+                    let delBtn = currentUserRole === 'admin' && a.role !== 'admin' ? `<button onclick="deleteUser('${a.name}')" style="background:transparent; border:1px solid var(--danger-red); color:var(--danger-red); cursor:pointer; padding:8px 12px; border-radius:500px; font-size:9px; font-weight:bold;">REVOKE</button>` : '';
+                    activeHtml += `<div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:15px 0; display:flex; justify-content:space-between; align-items:center;"><div><b style="color:var(--white-text); font-size:14px;">${a.name}</b> <span style="color:var(--gold-solid); font-size:10px; margin-left:10px; font-weight:800; letter-spacing:1px;">[ ${a.role.toUpperCase()} ]</span></div>${delBtn}</div>`; 
+                });
+                area.innerHTML = `<h3>OPERATIVE MANAGEMENT</h3><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;"><div>${inviteHtml}</div><div style="background:rgba(0,0,0,0.4); padding:30px; border:1px solid rgba(255,255,255,0.05); border-radius:16px;">${activeHtml}</div></div>`;
+            }
+            else if (pane === 'ExecDashboard') {
+                let d = await fetchAPI('getComms'); if(!d) return;
+                let aBio = d.bio['Alan'] || 'Chief Executive Officer'; let jBio = d.bio['Joel'] || 'Chief Technology Officer';
+                let aPic = (globalProfiles['Alan'] && globalProfiles['Alan'].avatar) ? `<img src="${globalProfiles['Alan'].avatar}" style="width:45px;height:45px;border-radius:50%;border:1px solid var(--gold-solid); object-fit:cover;">` : `<div style="width:45px;height:45px;border-radius:50%;border:1px solid var(--gold-solid);display:flex;align-items:center;justify-content:center;">A</div>`;
+                let jPic = (globalProfiles['Joel'] && globalProfiles['Joel'].avatar) ? `<img src="${globalProfiles['Joel'].avatar}" style="width:45px;height:45px;border-radius:50%;border:1px solid var(--gold-solid); object-fit:cover;">` : `<div style="width:45px;height:45px;border-radius:50%;border:1px solid var(--gold-solid);display:flex;align-items:center;justify-content:center;">J</div>`;
+                let myBioBtn = `<button class="btn-metallic" style="width:100%; margin-top:20px;" onclick="updateBio()">UPDATE MY BIO</button>`;
+                let alanHtml = `<div class="data-card"><div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">${aPic} <h4>ALAN (CEO)</h4></div><textarea id="bio-Alan" style="height:80px;" ${currentUserName!=='Alan'?'disabled':''}>${aBio}</textarea>${currentUserName==='Alan'?myBioBtn:''}</div>`;
+                let joelHtml = `<div class="data-card"><div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">${jPic} <h4 style="color:#aaa;">JOEL (CTO)</h4></div><textarea id="bio-Joel" style="height:80px;" ${currentUserName!=='Joel'?'disabled':''}>${jBio}</textarea>${currentUserName==='Joel'?myBioBtn:''}</div>`;
+                area.innerHTML = `<h3>EXECUTIVE BOARD OVERVIEW</h3><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">${alanHtml}${joelHtml}</div>`;
+            } 
+            else if (pane === 'SecureChat') {
+                area.innerHTML = `<h3>ENCRYPTED COMMS CHANNEL</h3><div id="chat-box" style="height:40vh; overflow-y:auto; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.05); padding:25px; margin-bottom:20px; border-radius:12px;">SYNCING...</div>
+                <div class="ai-input-container">
+                    <div style="flex:1; display:flex; flex-direction:column;"><textarea id="chat-msg" placeholder="Transmit message..."></textarea></div>
+                    <button class="ai-send-btn" onclick="sendMainChat()">➤</button>
+                </div>`;
+                pollGlobalChat();
+            }
+            else if (pane === 'Overview') {
+                let data = await fetchAPI('getStats'); if(!data) { area.innerHTML = "API Connection Failed."; return; }
+                let prodDisplay = canEdit() ? `$${data.prod}` : '$XXX'; let promoDisplay = canEdit() ? `$${data.promo}` : '$XXX';
+                let htmlOut = `<h3>LIVE CLOUD METRICS</h3><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:20px;"><div class="data-card"><div class="data-val">${data.spo_mo || 0}</div><div style="font-size:11px; color:#888; font-weight:600;">SPOTIFY MONTHLY</div></div><div class="data-card"><div class="data-val">${data.ig || 0}</div><div style="font-size:11px; color:#888; font-weight:600;">IG FOLLOWERS</div></div><div class="data-card"><div class="data-val" style="font-size:24px;">${prodDisplay}</div><div style="font-size:11px; color:#888; margin-top:5px; font-weight:600;">PROD BUDGET</div></div><div class="data-card"><div class="data-val" style="font-size:24px;">${promoDisplay}</div><div style="font-size:11px; color:#888; margin-top:5px; font-weight:600;">PROMO BUDGET</div></div></div>`;
+                let pData = await fetchAPI('getProjects');
+                htmlOut += `<div style="margin-top:40px; border-top:1px solid rgba(255,255,255,0.05); padding-top:30px;"><h4 style="margin-bottom:20px;">SAVED PROJECTS <span style="font-size:10px; color:#666; font-weight:normal; margin-left:10px;">(CLICK TO OPEN STORYBOARD)</span></h4><div style="display:flex; flex-wrap:wrap; gap:30px;">`;
+                if(pData && pData.length > 0) {
+                    let frag = document.createDocumentFragment();
+                    pData.forEach(p => { 
+                        let b64Title = safeEncode(p.title);
+                        let div = document.createElement('div');
+                        div.style.cssText = "width:100px; text-align:center; cursor:pointer; transition:0.3s;";
+                        div.onmouseover = function() { this.style.transform = "scale(1.1) translateY(-5px)"; };
+                        div.onmouseout = function() { this.style.transform = "scale(1) translateY(0)"; };
+                        div.title = `${p.genre} - ${p.status}`;
+                        div.onclick = function() { openProjectBoard(b64Title); };
+                        div.innerHTML = `<div style="font-size:55px; color:var(--gold-solid); filter:drop-shadow(0 10px 10px rgba(0,0,0,0.5));">📁</div><div style="font-size:11px; font-weight:600; color:var(--white-text); margin-top:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.title}</div>`;
+                        frag.appendChild(div);
+                    });
+                    let tempDiv = document.createElement('div'); tempDiv.appendChild(frag);
+                    htmlOut += tempDiv.innerHTML;
+                } else { htmlOut += `<p style="font-size:12px; color:#555;">No projects active.</p>`; }
+                htmlOut += `</div></div>`; area.innerHTML = htmlOut;
+            } 
+            else if (pane === 'Projects') {
+                let pData = await fetchAPI('getProjects'); let listHtml = "";
+                if(pData && pData.length > 0) {
+                    pData.forEach(p => {
+                        let b64Title = safeEncode(p.title);
+                        let btn = (currentTabType === 'roster' && canEdit()) ? `<button class="btn-metallic" style="margin-top:15px; padding:10px; background:var(--white-text); color:#000;" onclick="convertToRelease('${b64Title}', '${p.genre}', '${p.version}')">CONVERT TO RELEASE</button>` : '';
+                        listHtml += `<div class="data-card" style="border-left: 4px solid ${p.status==='Completed'?'#555':'var(--gold-solid)'};">
+                            <b style="font-size:16px; color:var(--white-text);">${p.title}</b> <span style="font-size:12px; color:#888;">(${p.format})</span><br>
+                            <span style="font-size:11px; color:#aaa; display:block; margin:8px 0; line-height:1.5;">Genre: ${p.genre} | Label: ${p.label} | Ver: ${p.version}<br>Status: <span style="color:${p.status==='Completed'?'#555':'var(--gold-solid)'}">${p.status}</span> | Deadline: ${new Date(p.deadline).toLocaleDateString()} | Proj: ${p.proj}</span>
+                            <button style="margin-top:10px; font-size:10px; font-weight:bold; letter-spacing:1px; background:transparent; border:1px solid var(--gold-solid); color:var(--gold-solid); cursor:pointer; padding:8px 15px; display:block; border-radius:500px; transition:0.2s;" onmouseover="this.style.background='var(--gold-solid)'; this.style.color='#000';" onmouseout="this.style.background='transparent'; this.style.color='var(--gold-solid)';" onclick="openProjectBoard('${b64Title}')">OPEN STORYBOARD</button>
+                            ${btn}
+                        </div>`;
+                    });
+                } else { listHtml = "<p style='color:#666;'>No active projects.</p>"; }
+
+                let inputHtml = canEdit() ? `<div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px;">
+                    <input type="text" id="p-title" placeholder="Project Title">
+                    <input type="text" id="p-genre" placeholder="Genre">
+                    <select id="p-format"><option>Format</option><option>Single</option><option>Album</option><option>EP</option></select>
+                    <select id="p-status"><option>In Progress</option><option>Completed</option></select>
+                    <input type="date" id="p-date" style="color:#888;">
+                    <select id="p-proj"><option>Nominal</option><option>LongShot</option><option>Banger</option></select>
+                    <input type="text" id="p-label" placeholder="Record Label">
+                    <select id="p-version"><option>Studio</option><option>Live</option><option>En Vivo</option><option>Remix</option><option>Demo</option></select>
+                </div><button class="btn-metallic" onclick="saveData('project')">ADD PROJECT</button>` : '<p style="color:#555; font-size:11px; font-style:italic;">* Editing restricted.</p>';
+                area.innerHTML = `<h3>PROJECTS TRACKER</h3><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 40px;"><div style="background:rgba(0,0,0,0.4); padding:30px; border:1px solid rgba(255,255,255,0.05); border-radius:12px;">${inputHtml}</div><div style="max-height:600px; overflow-y:auto; padding-right:10px;">${listHtml}</div></div>`;
+            }
+            else if (pane === 'Budget') {
+                if(!canEdit()) { area.innerHTML = "<h3>DYNAMIC BUDGETS</h3><p style='color:#555; font-style:italic;'>* Financial routing restricted to Admins.</p>"; return; }
+                let bData = await fetchAPI('getBudgets'); let pData = await fetchAPI('getProjects');
+                let projOpts = "<option value=''>Link to Project (Optional)</option>";
+                if(pData) pData.forEach(p => projOpts += `<option value="${p.title}">${p.title}</option>`);
+                
+                let listHtml = "";
+                if(bData && bData.length > 0) {
+                    bData.forEach(b => { listHtml += `<div class="data-card" style="display:flex; justify-content:space-between; align-items:center;"><div><b style="color:var(--gold-solid); font-size:20px; font-family:var(--font-mono);">$${b.amount}</b><br><span style="font-size:11px; color:#888;">${b.desc} | Project: ${b.proj || 'None'}</span></div><button onclick="deleteBudget('${b.id}')" style="background:transparent; border:none; color:var(--danger-red); cursor:pointer; font-size:14px; font-weight:bold;">✕</button></div>`; });
+                } else { listHtml = "<p style='color:#666;'>No budget entries recorded.</p>"; }
+
+                area.innerHTML = `<h3>DYNAMIC BUDGETS</h3><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 40px;"><div style="background:rgba(0,0,0,0.4); padding:30px; border:1px solid rgba(255,255,255,0.05); border-radius:12px;"><input type="number" id="b-amount" placeholder="Amount ($)"><input type="text" id="b-desc" placeholder="Description"><select id="b-proj" style="margin-bottom:20px;">${projOpts}</select><button class="btn-metallic" onclick="saveData('budget')">ADD BUDGET ENTRY</button></div><div style="max-height:600px; overflow-y:auto; padding-right:10px;">${listHtml}</div></div>`;
+            }
+            else if (pane === 'VisualData') {
+                let calData = await fetchAPI('getCalendar'); window.currentCalendarData = calData || [];
+                let todayStr = new Date().toISOString().slice(0, 7);
+                let inputHtml = canEdit() ? `<div style="background:rgba(0,0,0,0.4); padding:30px; border:1px solid rgba(255,255,255,0.05); border-radius:12px; margin-bottom:30px;"><h4 style="margin-bottom:15px;">ADD SCHEDULE EVENT</h4><input type="date" id="ev-date" style="color:#888;"><input type="text" id="ev-note" placeholder="Event details..."><select id="ev-color" style="margin-bottom:20px;"><option value="gold">Gold (Standard)</option><option value="red">Red (Critical Release)</option><option value="gray">Gray (Milestone)</option></select><button class="btn-metallic" onclick="saveData('calendar')">SCHEDULE EVENT</button></div>` : '';
+                area.innerHTML = `<h3>VISUAL SCHEDULING MATRIX</h3>${inputHtml}<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;"><input type="month" id="cal-month-select" value="${todayStr}" onchange="renderCalendar()" style="width:200px; margin:0; color:#fff; background:rgba(0,0,0,0.5);"></div><div id="cal-container"></div>`;
+                renderCalendar();
+            }
+            else {
+                area.innerHTML = `<h3>${pane.toUpperCase()}</h3><p style="color:#888;">Module interface initialized. Data stream nominal.</p>`;
+            }
+        }
+        
+        async function sendMainChat() {
+            let msg = document.getElementById('chat-msg').value; if(!msg) return;
+            document.getElementById('chat-msg').value = "";
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ mode: 'chat', user: currentUserName, message: msg }) });
+            pollGlobalChat();
+        }
+
+        async function saveData(type) {
+            let payload = { mode: type, entity: currentEntity };
+            if(type === 'project') {
+                payload.title = document.getElementById('p-title').value;
+                payload.genre = document.getElementById('p-genre').value;
+                payload.format = document.getElementById('p-format').value;
+                payload.status = document.getElementById('p-status').value;
+                payload.deadline = document.getElementById('p-date').value;
+                payload.proj = document.getElementById('p-proj').value;
+                payload.label = document.getElementById('p-label').value;
+                payload.version = document.getElementById('p-version').value;
+            } else if(type === 'budget') {
+                payload.amount = document.getElementById('b-amount').value;
+                payload.desc = document.getElementById('b-desc').value;
+                payload.proj = document.getElementById('b-proj').value;
+            } else if(type === 'calendar') {
+                payload.date = document.getElementById('ev-date').value;
+                payload.note = document.getElementById('ev-note').value;
+                payload.color = document.getElementById('ev-color').value;
+            }
+            let res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+            loadPane(type === 'project' ? 'Projects' : (type === 'budget' ? 'Budget' : 'VisualData'));
+        }
+    </script>
+</body>
+</html>
