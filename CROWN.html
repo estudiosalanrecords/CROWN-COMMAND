@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>CROWN | Label Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a; --bg-elev:#141414; --bg-card:#181818; --bg-card-hi:#232323;
+  --accent:#e50914; --accent-dim:#8f0009; --gold:#d4af37;
+  --text:#f2f2f2; --sub:#9c9c9c; --faint:#5c5c5c; --line:rgba(255,255,255,0.08);
+  --good:#2ecc71; --bad:#e74c3c; --warn:#f5a623;
+  --font-display:'Bebas Neue', 'Inter', sans-serif; --font-body:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius:14px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; height:100%;}
+body{
+  background:var(--bg); color:var(--text); font-family:var(--font-body);
+  overflow:hidden; height:100dvh; -webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+::-webkit-scrollbar{width:6px; height:6px;}
+::-webkit-scrollbar-thumb{background:#333; border-radius:10px;}
+*{scrollbar-width:thin; scrollbar-color:#333 transparent;}
+h1,h2,h3,h4{font-family:var(--font-display); letter-spacing:0.5px; margin:0; font-weight:400;}
+button{font-family:var(--font-body); cursor:pointer;}
+input,textarea,select{
+  background:var(--bg-card-hi); border:1px solid var(--line); color:var(--text);
+  padding:12px 14px; border-radius:9px; font-family:var(--font-body); font-size:14px; width:100%; outline:none;
+}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+label{font-size:11px; color:var(--sub); text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px; margin-top:14px; font-weight:600;}
+.field:first-child label{margin-top:0;}
+.btn{
+  border:none; border-radius:8px; padding:12px 22px; font-weight:700; font-size:13px;
+  letter-spacing:0.5px; transition:transform .15s ease, filter .15s ease;
+}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--accent); color:#fff;}
+.btn-primary:hover{filter:brightness(1.15);}
+.btn-ghost{background:var(--bg-card-hi); color:var(--text); border:1px solid var(--line);}
+.btn-ghost:hover{background:#2a2a2a;}
+.btn-gold{background:linear-gradient(135deg,#d4af37,#f3e5ab,#aa771c); color:#111;}
+.btn-danger{background:transparent; color:var(--bad); border:1px solid rgba(231,76,60,0.4);}
+.btn-sm{padding:8px 14px; font-size:11px; border-radius:6px;}
+.hidden{display:none !important;}
+a{color:var(--accent); text-decoration:none;}
+
+/* ---------- APP SHELL ---------- */
+#app{height:100dvh; width:100%; position:relative; overflow:hidden;}
+
+/* Boot */
+#boot{position:fixed; inset:0; background:radial-gradient(ellipse at 50% 38%, #171717 0%, #000 72%); z-index:9999; display:flex; align-items:center; justify-content:center; transition:opacity .6s ease;}
+
+/* Reflective CROWN wordmark, reused on boot + profile screen */
+.crown-stage{position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+.crown-stage::before{
+  content:''; position:absolute; inset:-20%; pointer-events:none;
+  background:linear-gradient(115deg, transparent 32%, rgba(212,175,55,0.10) 45%, rgba(255,255,255,0.16) 50%, rgba(212,175,55,0.10) 55%, transparent 68%);
+  background-size:260% 260%; animation:glossSweep 6s ease-in-out infinite;
+}
+@keyframes glossSweep{0%{background-position:210% 0%;} 100%{background-position:-60% 0%;}}
+.crown-logo-wrap{position:relative; z-index:2; display:flex; flex-direction:column; align-items:center;}
+.crown-logo{font-family:var(--font-display); font-size:clamp(48px,12vw,90px); letter-spacing:14px; margin:0; line-height:1;
+  background:linear-gradient(135deg,#d4af37,#fff6d5,#aa771c); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  animation:bootPulse 1.6s ease-in-out infinite;}
+@keyframes bootPulse{0%,100%{opacity:0.88; filter:drop-shadow(0 0 12px rgba(212,175,55,0.25))} 50%{opacity:1; filter:drop-shadow(0 0 28px rgba(212,175,55,0.55))}}
+.crown-shine-line{width:64%; height:1px; margin:3px auto; background:linear-gradient(90deg,transparent,rgba(212,175,55,0.65),transparent);}
+.crown-logo.reflect{
+  transform:scaleY(-1); opacity:0.4; animation:none; margin-top:0;
+  -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,0.55), transparent 78%);
+  mask-image:linear-gradient(to bottom, rgba(0,0,0,0.55), transparent 78%);
+}
+.crown-logo-wrap.small .crown-logo{font-size:clamp(34px,7vw,56px); letter-spacing:9px;}
+
+/* Profile select (Netflix-style) */
+#profile-screen{position:fixed; inset:0; background:radial-gradient(ellipse at top, #1a1a1a 0%, #0a0a0a 60%); z-index:500; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px;}
+.ps-grid{display:flex; flex-wrap:wrap; gap:26px; justify-content:center; max-width:920px;}
+.ps-card{width:130px; display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer;}
+.ps-avatar{width:112px; height:112px; border-radius:16px; background:var(--bg-card); display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid transparent; transition:.2s; font-family:var(--font-display); font-size:40px; color:var(--gold);}
+.ps-card:hover .ps-avatar{border-color:var(--accent); transform:scale(1.06);}
+.ps-avatar img{width:100%; height:100%; object-fit:cover;}
+.ps-name{font-size:13px; color:var(--sub); text-align:center;}
+.ps-card:hover .ps-name{color:#fff;}
+.ps-badge{font-size:9px; letter-spacing:1px; text-transform:uppercase; padding:2px 8px; border-radius:20px; background:rgba(255,255,255,0.08); color:var(--sub); margin-top:2px;}
+.ps-add .ps-avatar{border:2px dashed #444; font-size:44px; color:#555;}
+.ps-add:hover .ps-avatar{border-color:var(--gold); color:var(--gold);}
+.ps-foot{margin-top:44px; display:flex; gap:14px;}
+
+/* Modal */
+.modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); z-index:2000; display:flex; align-items:center; justify-content:center; padding:20px; animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0} to{opacity:1}}
+.modal-box{background:var(--bg-elev); border:1px solid var(--line); border-radius:16px; width:100%; max-width:480px; max-height:88vh; overflow-y:auto; padding:26px; box-shadow:0 30px 80px rgba(0,0,0,0.6);}
+.modal-box.wide{max-width:820px;}
+.modal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+.modal-close{background:none; border:none; color:var(--sub); font-size:22px; padding:4px 8px;}
+.icon-pick{display:flex; align-items:center; gap:16px; margin-bottom:6px;}
+.icon-pick .prev{width:64px; height:64px; border-radius:12px; background:var(--bg-card-hi); display:flex; align-items:center; justify-content:center; overflow:hidden; font-family:var(--font-display); color:var(--gold); font-size:24px;}
+.icon-pick .prev img{width:100%; height:100%; object-fit:cover;}
+
+/* Top bar in entity view */
+.topbar{height:64px; flex-shrink:0; display:flex; align-items:center; gap:18px; padding:0 22px; background:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.4)); border-bottom:1px solid var(--line); position:relative; z-index:200;}
+.tb-back{background:none; border:none; color:var(--sub); font-size:20px; padding:6px;}
+.tb-back:hover{color:#fff;}
+.tb-avatar{width:34px; height:34px; border-radius:8px; overflow:hidden; background:var(--bg-card-hi); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); color:var(--gold); flex-shrink:0;}
+.tb-avatar img{width:100%; height:100%; object-fit:cover;}
+.tb-name{font-family:var(--font-display); font-size:19px; letter-spacing:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:26vw;}
+.tb-type{font-size:9px; color:var(--gold); text-transform:uppercase; letter-spacing:1.5px; border:1px solid rgba(212,175,55,0.4); padding:2px 7px; border-radius:20px; flex-shrink:0;}
+.tabs{display:flex; gap:4px; overflow-x:auto; flex:1; scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{background:none; border:none; color:var(--sub); font-size:13px; font-weight:600; padding:10px 14px; white-space:nowrap; border-bottom:2px solid transparent; letter-spacing:0.3px;}
+.tab-btn.active{color:#fff; border-bottom-color:var(--accent);}
+.tab-btn:hover{color:#fff;}
+
+/* content */
+.content{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:24px 22px 100px 22px;}
+.stat-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:30px;}
+.stat-card{background:var(--bg-card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; min-width:140px; flex:1;}
+.stat-card .v{font-family:var(--font-display); font-size:30px; letter-spacing:1px;}
+.stat-card .l{font-size:10px; color:var(--sub); text-transform:uppercase; letter-spacing:1.5px; margin-top:2px;}
+.stat-card.good .v{color:var(--good);} .stat-card.bad .v{color:var(--bad);} .stat-card.gold .v{color:var(--gold);}
+
+.section-title{font-family:var(--font-display); font-size:20px; letter-spacing:1px; margin:28px 0 14px 0; display:flex; align-items:center; justify-content:space-between;}
+.section-title span.sm{font-size:11px; color:var(--sub); font-family:var(--font-body); font-weight:600; text-transform:none; letter-spacing:0;}
+
+.row-scroll{display:flex; gap:16px; overflow-x:auto; padding-bottom:10px; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch;}
+.card{
+  background:var(--bg-card); border:1px solid var(--line); border-radius:12px; overflow:hidden; cursor:pointer;
+  flex:0 0 190px; scroll-snap-align:start; transition:transform .18s ease, box-shadow .18s ease; position:relative;
+}
+.card:hover{transform:translateY(-4px); box-shadow:0 14px 30px rgba(0,0,0,0.5); border-color:#333;}
+.card .cover{width:100%; height:190px; background:var(--bg-card-hi); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:34px; color:rgba(255,255,255,0.15); overflow:hidden;}
+.card .cover img{width:100%; height:100%; object-fit:cover;}
+.card .body{padding:12px 14px;}
+.card .t{font-weight:700; font-size:13px; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.card .s{font-size:11px; color:var(--sub);}
+.status-pill{position:absolute; top:8px; right:8px; font-size:9px; padding:3px 9px; border-radius:20px; text-transform:uppercase; letter-spacing:1px; font-weight:700; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);}
+.add-card{flex:0 0 190px; height:246px; border:2px dashed #333; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--faint); gap:8px; cursor:pointer; scroll-snap-align:start;}
+.add-card:hover{border-color:var(--accent); color:var(--accent);}
+.add-card .plus{font-size:34px; line-height:1;}
+
+.empty-state{text-align:center; padding:60px 20px; color:var(--sub);}
+.empty-state .big{font-size:44px; margin-bottom:10px; opacity:0.3;}
+.empty-state p{max-width:340px; margin:8px auto 20px auto; font-size:13px; line-height:1.6;}
+
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media (max-width:640px){.grid-2{grid-template-columns:1fr;}}
+
+table.data-table{width:100%; border-collapse:collapse; font-size:13px;}
+table.data-table th{text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--sub); padding:8px 10px; border-bottom:1px solid var(--line);}
+table.data-table td{padding:10px 10px; border-bottom:1px solid var(--line); vertical-align:middle;}
+table.data-table tr:hover td{background:rgba(255,255,255,0.02);}
+
+.list-item{background:var(--bg-card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:12px;}
+.list-item .li-main{flex:1; min-width:0;}
+.li-title{font-weight:700; font-size:13px;}
+.li-sub{font-size:11px; color:var(--sub); margin-top:2px;}
+.icon-btn{background:none; border:none; color:var(--sub); font-size:16px; padding:6px;}
+.icon-btn:hover{color:#fff;}
+
+/* Project Detail full view */
+.detail-overlay{position:fixed; inset:0; background:var(--bg); z-index:1500; display:flex; flex-direction:column;}
+.detail-head{padding:18px 22px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:14px; flex-shrink:0;}
+.detail-head h2{font-size:24px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.subtabs{display:flex; gap:6px; padding:0 22px; border-bottom:1px solid var(--line); overflow-x:auto; flex-shrink:0; scrollbar-width:none;}
+.subtabs::-webkit-scrollbar{display:none;}
+.subtab-btn{background:none; border:none; color:var(--sub); padding:12px 12px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; border-bottom:2px solid transparent; white-space:nowrap;}
+.subtab-btn.active{color:#fff; border-bottom-color:var(--gold);}
+.detail-body{flex:1; overflow-y:auto; padding:22px; -webkit-overflow-scrolling:touch;}
+
+/* MIKO Board — post-it pinboard */
+.miko-wall{
+  position:relative; width:100%; min-height:560px; border-radius:14px; overflow:hidden;
+  background-color:#4a3527;
+  background-image:
+    radial-gradient(rgba(0,0,0,0.18) 1px, transparent 1px),
+    radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size:14px 14px, 9px 9px; background-position:0 0, 5px 5px;
+  border:1px solid var(--line); box-shadow:inset 0 0 60px rgba(0,0,0,0.5); touch-action:none;
+}
+.miko-note{
+  position:absolute; width:180px; min-height:170px; padding:16px 14px 14px 14px; border-radius:2px;
+  box-shadow:0 10px 20px rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.3);
+  cursor:grab; color:#2b2b2b; font-size:12px; touch-action:none; user-select:none;
+}
+.miko-note:active{cursor:grabbing;}
+.miko-note .pin{position:absolute; top:-9px; left:50%; transform:translateX(-50%); width:15px; height:15px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #ff8a8a, #a10000); box-shadow:0 3px 5px rgba(0,0,0,0.5); z-index:2;}
+.miko-note img{width:100%; height:100px; object-fit:cover; border-radius:2px; margin-bottom:8px; display:block; pointer-events:none;}
+.miko-note textarea{width:100%; min-height:54px; background:transparent; border:none; resize:none; font-family:var(--font-body); font-size:12px; color:#2b2b2b; padding:0; outline:none; line-height:1.45;}
+.miko-note textarea::placeholder{color:rgba(43,43,43,0.45);}
+.miko-del{position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.12); border:none; border-radius:50%; width:20px; height:20px; font-size:10px; color:#2b2b2b; line-height:1;}
+.miko-del:hover{background:rgba(0,0,0,0.25);}
+
+/* iTunes preview */
+.itunes-frame{background:linear-gradient(160deg,#1c1c1e,#0d0d0f); border-radius:20px; padding:26px; max-width:420px; margin:0 auto; border:1px solid var(--line); box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+.itunes-cover{width:100%; aspect-ratio:1/1; border-radius:12px; background:var(--bg-card-hi); overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; color:var(--faint); margin-bottom:16px;}
+.itunes-cover img{width:100%; height:100%; object-fit:cover;}
+.itunes-title{font-size:20px; font-weight:800; color:#fff;}
+.itunes-artist{font-size:14px; color:var(--accent); margin-top:2px; font-weight:600;}
+.itunes-meta{font-size:11px; color:var(--sub); margin:6px 0 16px 0;}
+.itunes-btn-row{display:flex; gap:10px; margin-bottom:18px;}
+.itunes-btn-row .ib{flex:1; background:rgba(255,255,255,0.08); border-radius:10px; padding:10px; text-align:center; font-size:12px; font-weight:700; color:#fff;}
+.itunes-track{display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid rgba(255,255,255,0.06); font-size:13px;}
+.itunes-track .n{color:var(--sub); width:18px; font-size:12px;}
+.itunes-track .tn{flex:1;}
+.itunes-track .dur{color:var(--sub); font-size:11px;}
+
+/* Campaign */
+.campaign-card{background:var(--bg-card); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px; position:relative; overflow:hidden;}
+.campaign-card.complete{border-color:rgba(46,204,113,0.5);}
+.campaign-progress-bar{height:6px; background:#222; border-radius:10px; overflow:hidden; margin:10px 0 18px 0;}
+.campaign-progress-fill{height:100%; background:linear-gradient(90deg,var(--gold),#fff6d5); transition:width .4s ease;}
+.step-row{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line);}
+.step-row:last-child{border-bottom:none;}
+.step-check{width:24px; height:24px; border-radius:50%; border:2px solid #444; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; color:transparent; transition:.2s;}
+.step-check.done{background:var(--good); border-color:var(--good); color:#000;}
+.step-check.locked{opacity:0.35;}
+.step-label{flex:1; font-size:13px;}
+.step-label.done{text-decoration:line-through; color:var(--sub);}
+.step-label.locked{color:var(--faint);}
+
+/* LANA */
+#lana-fab{position:fixed; bottom:22px; right:22px; width:58px; height:58px; border-radius:50%; background:linear-gradient(135deg,#d4af37,#fff6d5,#aa771c); border:none; box-shadow:0 8px 26px rgba(212,175,55,0.4); z-index:1800; font-family:var(--font-display); font-size:16px; color:#111; display:flex; align-items:center; justify-content:center;}
+#lana-fab:active{transform:scale(0.94);}
+#lana-panel{position:fixed; bottom:0; right:0; width:380px; max-width:100vw; height:70vh; max-height:640px; background:var(--bg-elev); border:1px solid var(--line); border-radius:18px 18px 0 0; z-index:1900; display:flex; flex-direction:column; box-shadow:0 -10px 50px rgba(0,0,0,0.6); transform:translateY(100%); transition:transform .3s cubic-bezier(.2,.9,.3,1);}
+#lana-panel.open{transform:translateY(0);}
+.lana-head{padding:16px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px;}
+.lana-head .dot{width:9px; height:9px; border-radius:50%; background:var(--good); box-shadow:0 0 8px var(--good);}
+.lana-head h3{font-size:20px; letter-spacing:1px; flex:1;}
+.lana-body{flex:1; overflow-y:auto; padding:14px 18px; display:flex; flex-direction:column; gap:10px;}
+.lana-msg{max-width:85%; padding:10px 13px; border-radius:12px; font-size:13px; line-height:1.5;}
+.lana-msg.bot{background:var(--bg-card); align-self:flex-start; border:1px solid var(--line); white-space:pre-line;}
+.lana-msg.me{background:var(--accent); color:#fff; align-self:flex-end;}
+.lana-quick{display:flex; gap:6px; flex-wrap:wrap; padding:0 18px 10px 18px;}
+.lq-btn{background:var(--bg-card-hi); border:1px solid var(--line); color:var(--sub); font-size:11px; padding:7px 11px; border-radius:20px;}
+.lq-btn:hover{color:#fff; border-color:var(--gold);}
+.lana-input-row{display:flex; gap:8px; padding:12px; border-top:1px solid var(--line);}
+.lana-input-row input{margin:0;}
+
+/* Toast */
+#toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px); background:#fff; color:#000; padding:12px 22px; border-radius:30px; font-size:12px; font-weight:700; z-index:5000; transition:transform .3s ease; box-shadow:0 10px 30px rgba(0,0,0,0.4);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+/* confetti */
+.confetti-piece{position:fixed; top:-10px; width:8px; height:14px; z-index:9998; pointer-events:none; opacity:0.95; border-radius:2px;}
+@keyframes confettiFall{to{transform:translateY(110vh) rotate(600deg); opacity:0;}}
+.celebrate-banner{position:fixed; top:20px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#d4af37,#fff6d5,#aa771c); color:#111; padding:14px 28px; border-radius:40px; font-family:var(--font-display); font-size:17px; letter-spacing:1px; z-index:9999; box-shadow:0 10px 40px rgba(212,175,55,0.5); animation:bannerPop .5s ease;}
+@keyframes bannerPop{0%{transform:translateX(-50%) translateY(-40px) scale(0.8); opacity:0;} 60%{transform:translateX(-50%) translateY(4px) scale(1.03); opacity:1;} 100%{transform:translateX(-50%) translateY(0) scale(1);}}
+
+.mini-note{font-size:11px; color:var(--faint); line-height:1.6; margin-top:8px;}
+.pw-row{display:flex; align-items:center; gap:8px;}
+.pw-row input{flex:1;}
+
+@media (max-width:700px){
+  .tb-name{max-width:38vw;}
+  .content{padding:18px 14px 100px 14px;}
+  #lana-panel{width:100%; height:80vh; border-radius:18px 18px 0 0;}
+  .card{flex:0 0 150px;}
+  .card .cover{height:150px;}
+  .add-card{flex:0 0 150px; height:200px;}
+}
+</style>
+</head>
+<body>
+
+<div id="boot">
+  <div class="crown-stage">
+    <div class="crown-logo-wrap">
+      <h1 class="crown-logo">CROWN</h1>
+      <div class="crown-shine-line"></div>
+      <h1 class="crown-logo reflect">CROWN</h1>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   CROWN — LABEL COMMAND CENTER
+   Fully client-side. All data lives in localStorage.
+   ========================================================= */
+
+const LS_KEY = 'crown_command_db_v3';
+let DB = null;
+let currentTab = 'Overview';
+let currentProjectRef = null;   // {entityId, projectId}
+let projectSubtab = 'Details';
+let lanaOpen = false;
+
+const CAMPAIGN_STEPS = [
+  'Lock Release Date',
+  'Finalize Artwork & Masters',
+  'Build Press Kit',
+  'Schedule Social Rollout',
+  'Pitch Playlists & Media',
+  'Launch Day Push',
+  'Post-Launch Report'
+];
+
+/* ---------- utils ---------- */
+function uid(p){ return (p||'id') + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function esc(s){ return (s===undefined||s===null) ? '' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function money(n){ n = parseFloat(n)||0; return '$' + n.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtDate(d){ if(!d) return '—'; try{ return new Date(d+'T00:00:00').toLocaleDateString(undefined,{month:'short', day:'numeric', year:'numeric'}); }catch(e){ return d; } }
+function toast(msg){
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._toastT); window._toastT = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function initials(name){ if(!name) return '?'; return name.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+
+/* ---------- persistence ---------- */
+function freshDB(){ return { entities:{}, order:[], activeId:null }; }
+
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    DB = raw ? JSON.parse(raw) : freshDB();
+    if(!DB.entities) DB = freshDB();
+  }catch(e){ console.error('DB load failed', e); DB = freshDB(); }
+}
+function saveDB(silent){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify(DB));
+    if(!silent) toast('Saved');
+  }catch(e){
+    console.error('DB save failed', e);
+    alert('Save failed — your device storage may be full. Try removing large images/audio.');
+  }
+}
+
+function newEntity(type, name, icon){
+  const base = {
+    id: uid('ent'), type, name, icon: icon||null, createdAt: Date.now(),
+    projects: [],
+    finance: [],
+    personal: { name:'', email:'', phone:'', address:'', notes:'', passwords:[] },
+    itunes: { projectId:'', title:'', artist:'', cover:'', tracks:[] },
+    linked: [],
+    companyFinance: { costs:[], royalties:[] },
+    campaigns: [],
+    lanaLog: []
+  };
+  return base;
+}
+
+function activeEntity(){ return DB.activeId ? DB.entities[DB.activeId] : null; }
+function allProjectsFlat(){
+  let out = [];
+  DB.order.forEach(id=>{
+    const e = DB.entities[id];
+    if(e.type==='artist'){ e.projects.forEach(p=> out.push({entityId:e.id, entityName:e.name, project:p})); }
+  });
+  return out;
+}
+function findProject(entityId, projectId){
+  const e = DB.entities[entityId]; if(!e) return null;
+  return e.projects.find(p=>p.id===projectId) || null;
+}
+
+/* ---------- boot ---------- */
+window.addEventListener('DOMContentLoaded', ()=>{
+  loadDB();
+  setTimeout(()=>{
+    document.getElementById('boot').style.opacity='0';
+    setTimeout(()=> document.getElementById('boot').remove(), 650);
+    renderRoot();
+  }, 900);
+});
+
+function renderRoot(){
+  if(DB.activeId && DB.entities[DB.activeId]){ renderShell(); }
+  else { renderProfileScreen(); }
+}
+
+/* =========================================================
+   PROFILE SELECT SCREEN
+   ========================================================= */
+function renderProfileScreen(){
+  const app = document.getElementById('app');
+  const ids = DB.order.filter(id=>DB.entities[id]);
+  let cards = ids.map(id=>{
+    const e = DB.entities[id];
+    const av = e.icon ? `<img src="${e.icon}">` : initials(e.name);
+    return `<div class="ps-card" onclick="enterEntity('${id}')">
+      <div class="ps-avatar">${av}</div>
+      <div class="ps-name">${esc(e.name)}</div>
+      <div class="ps-badge">${e.type==='artist'?'Artist / Band':'Company'}</div>
+    </div>`;
+  }).join('');
+
+  app.innerHTML = `
+  <div id="profile-screen">
+    <div class="crown-stage" style="margin-bottom:38px;">
+      <div class="crown-logo-wrap small">
+        <h1 class="crown-logo">CROWN</h1>
+        <div class="crown-shine-line"></div>
+        <h1 class="crown-logo reflect">CROWN</h1>
+      </div>
+    </div>
+    <div class="ps-grid">
+      ${cards}
+      <div class="ps-card ps-add" onclick="openEntityModal()">
+        <div class="ps-avatar">+</div>
+        <div class="ps-name">Add Profile</div>
+      </div>
+    </div>
+    <div class="ps-foot">
+      ${ids.length ? `<button class="btn btn-ghost btn-sm" onclick="openManageModal()">Manage Profiles</button>` : ``}
+      <button class="btn btn-ghost btn-sm" onclick="exportBackup()">Export Backup</button>
+      <label class="btn btn-ghost btn-sm" style="margin:0;">Import Backup<input type="file" accept="application/json" style="display:none" onchange="importBackup(this)"></label>
+    </div>
+  </div>`;
+}
+
+function enterEntity(id){
+  DB.activeId = id; saveDB(true); currentTab='Overview'; renderShell();
+}
+function exitToProfiles(){
+  DB.activeId = null; saveDB(true); currentProjectRef=null; renderProfileScreen();
+}
+
+function openEntityModal(editId){
+  const editing = editId ? DB.entities[editId] : null;
+  const backdrop = document.createElement('div');
+  backdrop.className='modal-backdrop';
+  backdrop.innerHTML = `
+  <div class="modal-box">
+    <div class="modal-head"><h3>${editing?'Edit Profile':'New Profile'}</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="icon-pick">
+      <div class="prev" id="ent-icon-prev">${editing && editing.icon ? `<img src="${editing.icon}">` : (editing? initials(editing.name):'?')}</div>
+      <div style="flex:1;">
+        <label style="margin:0;">Profile Image</label>
+        <input type="file" accept="image/*" onchange="handleIconFile(this)">
+      </div>
+    </div>
+    <input type="hidden" id="ent-icon-data" value="${editing && editing.icon ? esc(editing.icon):''}">
+    <div class="field">
+      <label>Type</label>
+      <select id="ent-type" ${editing?'disabled':''}>
+        <option value="artist" ${editing && editing.type==='artist'?'selected':''}>Artist / Band</option>
+        <option value="company" ${editing && editing.type==='company'?'selected':''}>Company / Label</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="ent-name" placeholder="e.g. Midnight Static, or Avian Music Group" value="${editing?esc(editing.name):''}">
+    </div>
+    <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="saveEntity(${editing?`'${editId}'`:'null'})">${editing?'Save Changes':'Create Profile'}</button>
+    ${editing?`<button class="btn btn-danger" style="width:100%; margin-top:10px;" onclick="deleteEntity('${editId}')">Delete Profile</button>`:''}
+  </div>`;
+  document.body.appendChild(backdrop);
+}
+function handleIconFile(input){
+  const f = input.files[0]; if(!f) return;
+  if(f.size > 3*1024*1024){ alert('Please choose an image under 3MB.'); return; }
+  const r = new FileReader();
+  r.onload = ()=>{ document.getElementById('ent-icon-data').value = r.result; document.getElementById('ent-icon-prev').innerHTML = `<img src="${r.result}">`; };
+  r.readAsDataURL(f);
+}
+function saveEntity(editId){
+  const name = document.getElementById('ent-name').value.trim();
+  if(!name){ alert('Please enter a name.'); return; }
+  const icon = document.getElementById('ent-icon-data').value || null;
+  if(editId){
+    const e = DB.entities[editId]; e.name = name; e.icon = icon;
+  } else {
+    const type = document.getElementById('ent-type').value;
+    const e = newEntity(type, name, icon);
+    DB.entities[e.id] = e; DB.order.push(e.id);
+  }
+  saveDB(true); closeModal();
+  if(document.getElementById('profile-screen')) renderProfileScreen(); else renderShell();
+  toast('Profile saved');
+}
+function deleteEntity(id){
+  if(!confirm('Delete this profile and all of its data? This cannot be undone.')) return;
+  delete DB.entities[id]; DB.order = DB.order.filter(x=>x!==id);
+  DB.order.forEach(oid=>{ const e=DB.entities[oid]; if(e.linked) e.linked = e.linked.filter(l=>l.entityId!==id); });
+  if(DB.activeId===id) DB.activeId=null;
+  saveDB(true); closeModal(); renderProfileScreen();
+}
+function openManageModal(){
+  const backdrop = document.createElement('div');
+  backdrop.className='modal-backdrop';
+  let rows = DB.order.map(id=>{
+    const e = DB.entities[id];
+    return `<div class="list-item"><div class="li-main"><div class="li-title">${esc(e.name)}</div><div class="li-sub">${e.type==='artist'?'Artist / Band':'Company'}</div></div><button class="icon-btn" onclick="closeModal(); openEntityModal('${id}')">✎</button></div>`;
+  }).join('') || '<p class="mini-note">No profiles yet.</p>';
+  backdrop.innerHTML = `<div class="modal-box"><div class="modal-head"><h3>Manage Profiles</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>${rows}</div>`;
+  document.body.appendChild(backdrop);
+}
+function closeModal(){ document.querySelectorAll('.modal-backdrop').forEach(m=>m.remove()); }
+
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(DB,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'crown-backup-' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+}
+function importBackup(input){
+  const f = input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const data = JSON.parse(r.result);
+      if(!data.entities) throw new Error('bad format');
+      if(!confirm('This will replace all current data with the backup. Continue?')) return;
+      DB = data; saveDB(true); renderProfileScreen(); toast('Backup restored');
+    }catch(e){ alert('Could not read that backup file.'); }
+  };
+  r.readAsText(f);
+}
+
+/* =========================================================
+   SHELL (inside an entity)
+   ========================================================= */
+function tabsForEntity(e){
+  if(e.type==='artist') return ['Overview','Projects','Finance','Personal','iTunes'];
+  return ['Overview','Projects','Finance','Campaigns'];
+}
+
+function renderShell(){
+  const e = activeEntity(); if(!e){ renderProfileScreen(); return; }
+  if(!tabsForEntity(e).includes(currentTab)) currentTab='Overview';
+  const app = document.getElementById('app');
+  const av = e.icon ? `<img src="${e.icon}">` : initials(e.name);
+  const tabs = tabsForEntity(e).map(t=>`<button class="tab-btn ${t===currentTab?'active':''}" onclick="switchTab('${t}')">${t}</button>`).join('');
+
+  app.innerHTML = `
+  <div class="os-layout" style="flex-direction:column; height:100dvh; display:flex;">
+    <div class="topbar">
+      <button class="tb-back" onclick="exitToProfiles()">&#8592;</button>
+      <div class="tb-avatar">${av}</div>
+      <div class="tb-name">${esc(e.name)}</div>
+      <div class="tb-type">${e.type==='artist'?'Artist':'Company'}</div>
+      <div class="tabs">${tabs}</div>
+      <button class="icon-btn" title="Edit Profile" onclick="openEntityModal('${e.id}')">⚙</button>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+  <button id="lana-fab" onclick="toggleLana()">L</button>
+  ${lanaPanelHTML()}
+  `;
+  renderTabContent();
+  if(lanaOpen) document.getElementById('lana-panel').classList.add('open');
+}
+
+function switchTab(t){ currentTab=t; renderShell(); }
+
+function renderTabContent(){
+  const e = activeEntity(); const c = document.getElementById('content'); if(!c) return;
+  if(e.type==='artist'){
+    if(currentTab==='Overview') c.innerHTML = renderArtistOverview(e);
+    if(currentTab==='Projects') c.innerHTML = renderProjectsTab(e);
+    if(currentTab==='Finance') c.innerHTML = renderArtistFinance(e);
+    if(currentTab==='Personal') c.innerHTML = renderPersonalTab(e);
+    if(currentTab==='iTunes') c.innerHTML = renderItunesTab(e);
+  } else {
+    if(currentTab==='Overview') c.innerHTML = renderCompanyOverview(e);
+    if(currentTab==='Projects') c.innerHTML = renderCompanyProjects(e);
+    if(currentTab==='Finance') c.innerHTML = renderCompanyFinance(e);
+    if(currentTab==='Campaigns') c.innerHTML = renderCampaignsTab(e);
+  }
+}
+
+/* ---------- ARTIST: Overview ---------- */
+function renderArtistOverview(e){
+  const totalCost = e.finance.filter(f=>f.type==='cost').reduce((s,f)=>s+parseFloat(f.amount||0),0);
+  const totalPay = e.finance.filter(f=>f.type==='payment').reduce((s,f)=>s+parseFloat(f.amount||0),0);
+  const active = e.projects.filter(p=>p.status!=='Released').length;
+  return `
+  <div class="stat-row">
+    <div class="stat-card"><div class="v">${e.projects.length}</div><div class="l">Total Projects</div></div>
+    <div class="stat-card gold"><div class="v">${active}</div><div class="l">In Progress</div></div>
+    <div class="stat-card good"><div class="v">${money(totalPay)}</div><div class="l">Payments Received</div></div>
+    <div class="stat-card bad"><div class="v">${money(totalCost)}</div><div class="l">Total Costs</div></div>
+  </div>
+  <div class="section-title">Recent Projects <span class="sm" onclick="switchTab('Projects')" style="cursor:pointer; color:var(--accent);">View all →</span></div>
+  ${e.projects.length ? `<div class="row-scroll">${e.projects.slice(-8).reverse().map(p=>projectCardHTML(e.id,p)).join('')}</div>` :
+  `<div class="empty-state"><div class="big">🎵</div><h3>No projects yet</h3><p>Create your first album, single, or EP to start tracking songs, a MIKO board, media and dates.</p><button class="btn btn-primary" onclick="switchTab('Projects')">Create a Project</button></div>`}
+  `;
+}
+
+/* ---------- Project cards + list ---------- */
+function projectCardHTML(entityId, p){
+  const cover = p.cover ? `<img src="${p.cover}">` : (p.title? p.title[0].toUpperCase() : '?');
+  return `<div class="card" onclick="openProject('${entityId}','${p.id}')">
+    <div class="status-pill" style="color:${statusColor(p.status)}">${esc(p.status||'Idea')}</div>
+    <div class="cover">${cover}</div>
+    <div class="body"><div class="t">${esc(p.title||'Untitled')}</div><div class="s">${esc(p.genre||'—')} · ${esc(p.format||'—')}</div></div>
+  </div>`;
+}
+function statusColor(s){
+  return {'Idea':'#9c9c9c','In Progress':'#f5a623','Mixing':'#00ffff','Mastering':'#00ffaa','Released':'#2ecc71'}[s] || '#9c9c9c';
+}
+
+function renderProjectsTab(e){
+  return `
+  <div class="section-title">Projects</div>
+  <div class="row-scroll">
+    ${e.projects.slice().reverse().map(p=>projectCardHTML(e.id,p)).join('')}
+    <div class="add-card" onclick="createProject('${e.id}')"><div class="plus">+</div><div>New Project</div></div>
+  </div>`;
+}
+
+function createProject(entityId){
+  const e = DB.entities[entityId];
+  const p = { id: uid('proj'), title:'Untitled Project', genre:'', format:'Single', status:'Idea', deadline:'', label:'', notes:'',
+    cover:'', songs:[], miko:[], images:[], audio:[], dates:[] };
+  e.projects.push(p); saveDB(true); openProject(entityId, p.id);
+}
+
+/* ---------- Project detail overlay ---------- */
+function openProject(entityId, projectId){
+  currentProjectRef = {entityId, projectId}; projectSubtab='Details';
+  renderProjectDetail();
+}
+function closeProject(){ currentProjectRef=null; renderShell(); }
+
+function renderProjectDetail(){
+  const app = document.getElementById('app');
+  const {entityId, projectId} = currentProjectRef;
+  const p = findProject(entityId, projectId);
+  if(!p){ closeProject(); return; }
+  const subtabs = ['Details','Songs','MIKO Board','Media','Audio','Dates'];
+  const overlay = document.createElement('div');
+  overlay.className='detail-overlay'; overlay.id='project-overlay';
+  overlay.innerHTML = `
+    <div class="detail-head">
+      <button class="tb-back" onclick="closeProject()">&#8592;</button>
+      <h2>${esc(p.title)}</h2>
+      <button class="btn btn-danger btn-sm" onclick="deleteProject()">Delete</button>
+    </div>
+    <div class="subtabs">${subtabs.map(t=>`<button class="subtab-btn ${t===projectSubtab?'active':''}" onclick="switchProjectSubtab('${t}')">${t}</button>`).join('')}</div>
+    <div class="detail-body" id="project-body"></div>
+  `;
+  document.body.appendChild(overlay);
+  renderProjectSubtab();
+}
+function switchProjectSubtab(t){ projectSubtab=t; renderProjectSubtab(); }
+function renderProjectSubtab(){
+  const {entityId, projectId} = currentProjectRef;
+  const p = findProject(entityId, projectId);
+  const body = document.getElementById('project-body');
+  if(projectSubtab==='Details') body.innerHTML = projectDetailsForm(entityId,p);
+  if(projectSubtab==='Songs') body.innerHTML = projectSongsHTML(entityId,p);
+  if(projectSubtab==='MIKO Board') body.innerHTML = projectMikoHTML(entityId,p);
+  if(projectSubtab==='Media') body.innerHTML = projectMediaHTML(entityId,p);
+  if(projectSubtab==='Audio') body.innerHTML = projectAudioHTML(entityId,p);
+  if(projectSubtab==='Dates') body.innerHTML = projectDatesHTML(entityId,p);
+}
+function deleteProject(){
+  if(!confirm('Delete this project permanently?')) return;
+  const {entityId, projectId} = currentProjectRef;
+  const e = DB.entities[entityId]; e.projects = e.projects.filter(p=>p.id!==projectId);
+  DB.order.forEach(oid=>{ const c=DB.entities[oid]; if(c.linked) c.linked = c.linked.filter(l=>!(l.entityId===entityId && l.projectId===projectId)); if(c.campaigns) c.campaigns = c.campaigns.filter(cp=>!(cp.entityId===entityId && cp.projectId===projectId)); });
+  saveDB(true); closeProject();
+}
+
+function projectDetailsForm(entityId, p){
+  return `
+  <div class="icon-pick" style="margin-bottom:20px;">
+    <div class="prev" style="width:90px; height:90px;">${p.cover? `<img src="${p.cover}">` : (p.title?p.title[0].toUpperCase():'?')}</div>
+    <div style="flex:1;"><label style="margin:0;">Cover Art</label><input type="file" accept="image/*" onchange="setProjectCover(this)"></div>
+  </div>
+  <div class="grid-2">
+    <div class="field"><label>Title</label><input id="pd-title" value="${esc(p.title)}"></div>
+    <div class="field"><label>Genre</label><input id="pd-genre" value="${esc(p.genre)}"></div>
+    <div class="field"><label>Format</label><select id="pd-format">${['Single','EP','Album','Mixtape','Music Video'].map(f=>`<option ${p.format===f?'selected':''}>${f}</option>`).join('')}</select></div>
+    <div class="field"><label>Status</label><select id="pd-status">${['Idea','In Progress','Mixing','Mastering','Released'].map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="field"><label>Target / Release Date</label><input type="date" id="pd-date" value="${p.deadline||''}"></div>
+    <div class="field"><label>Label / Distributor</label><input id="pd-label" value="${esc(p.label)}"></div>
+  </div>
+  <div class="field"><label>Notes</label><textarea id="pd-notes" rows="5">${esc(p.notes)}</textarea></div>
+  <button class="btn btn-primary" onclick="saveProjectDetails()">Save Project</button>
+  `;
+}
+function setProjectCover(input){
+  const f = input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{ const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId); p.cover=r.result; saveDB(true); renderProjectSubtab(); };
+  r.readAsDataURL(f);
+}
+function saveProjectDetails(){
+  const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId);
+  p.title=document.getElementById('pd-title').value.trim()||'Untitled Project';
+  p.genre=document.getElementById('pd-genre').value;
+  p.format=document.getElementById('pd-format').value;
+  p.status=document.getElementById('pd-status').value;
+  p.deadline=document.getElementById('pd-date').value;
+  p.label=document.getElementById('pd-label').value;
+  p.notes=document.getElementById('pd-notes').value;
+  saveDB(true); document.querySelector('#project-overlay h2').textContent = p.title; toast('Project saved');
+}
+
+/* Songs */
+function projectSongsHTML(entityId,p){
+  let rows = p.songs.map((s,i)=>`<div class="list-item"><div class="li-main"><div class="li-title">${i+1}. ${esc(s.title)}</div><div class="li-sub">${esc(s.duration||'--:--')} ${s.notes?'· '+esc(s.notes):''}</div></div><button class="icon-btn" onclick="removeSong(${i})">✕</button></div>`).join('') || '<p class="mini-note">No songs added yet.</p>';
+  return `<div class="section-title">Tracklist</div>${rows}
+  <div class="grid-2" style="margin-top:18px;">
+    <div class="field"><label>Song Title</label><input id="sg-title" placeholder="Track name"></div>
+    <div class="field"><label>Duration</label><input id="sg-dur" placeholder="3:42"></div>
+  </div>
+  <div class="field"><label>Notes</label><input id="sg-notes" placeholder="Producer, feature, BPM..."></div>
+  <button class="btn btn-primary" onclick="addSong()">Add Song</button>`;
+}
+function addSong(){
+  const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId);
+  const title = document.getElementById('sg-title').value.trim(); if(!title) return;
+  p.songs.push({id:uid('song'), title, duration:document.getElementById('sg-dur').value, notes:document.getElementById('sg-notes').value});
+  saveDB(true); renderProjectSubtab();
+}
+function removeSong(i){ const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId); p.songs.splice(i,1); saveDB(true); renderProjectSubtab(); }
+
+/* MIKO Board — post-it pinboard: upload image, type, drag, pin */
+const MIKO_COLORS = ['#fff59d','#ffccbc','#c8e6c9','#b3e5fc','#e1bee7','#ffe0b2'];
+let mikoDrag = null;
+
+function ensureMiko(p){
+  if(!p.miko){
+    // carry over any legacy storyboard scenes so nothing is lost
+    p.miko = (p.storyboard||[]).map((s,i)=>({
+      id:uid('note'), x:20+(i%4)*196, y:20+Math.floor(i/4)*210,
+      text:[s.title,s.desc].filter(Boolean).join('\n'), image:s.image||'',
+      color:MIKO_COLORS[i%MIKO_COLORS.length], rot:(Math.random()*10-5).toFixed(1)
+    }));
+  }
+  return p.miko;
+}
+
+function projectMikoHTML(entityId,p){
+  const notes = ensureMiko(p);
+  const html = notes.map((n,i)=>mikoNoteHTML(n,i)).join('');
+  return `<div class="section-title">MIKO Board <span class="sm">Pin ideas, lyrics &amp; reference images — drag to arrange</span></div>
+  <div style="display:flex; gap:10px; margin-bottom:14px;">
+    <button class="btn btn-gold btn-sm" onclick="addMikoNote()">+ Add Note</button>
+    <label class="btn btn-ghost btn-sm">+ Add Photo Pin<input type="file" accept="image/*" style="display:none" onchange="addMikoPhoto(this)"></label>
+  </div>
+  <div class="miko-wall" id="miko-wall">${html || '<p class="mini-note" style="position:absolute; top:20px; left:20px; max-width:260px;">The board is empty — pin a note or a reference photo to start planning.</p>'}</div>`;
+}
+
+function mikoNoteHTML(n,i){
+  return `<div class="miko-note" style="left:${n.x}px; top:${n.y}px; background:${n.color}; transform:rotate(${n.rot}deg);" onpointerdown="mikoDragStart(event,${i})">
+    <div class="pin"></div>
+    <button class="miko-del" onpointerdown="event.stopPropagation()" onclick="removeMikoNote(${i})">✕</button>
+    ${n.image?`<img src="${n.image}" draggable="false">`:''}
+    <textarea placeholder="Type here..." onpointerdown="event.stopPropagation()" oninput="updateMikoText(${i}, this.value)">${esc(n.text)}</textarea>
+  </div>`;
+}
+
+function addMikoNote(){
+  const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId); const notes=ensureMiko(p);
+  const wall = document.getElementById('miko-wall'); const w = wall?wall.clientWidth:600;
+  notes.push({ id:uid('note'), x:Math.random()*Math.max(w-200,40), y:Math.random()*260+20, text:'', image:'',
+    color:MIKO_COLORS[notes.length%MIKO_COLORS.length], rot:(Math.random()*10-5).toFixed(1) });
+  saveDB(true); renderProjectSubtab();
+}
+function addMikoPhoto(input){
+  const f = input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId); const notes=ensureMiko(p);
+    const wall = document.getElementById('miko-wall'); const w = wall?wall.clientWidth:600;
+    notes.push({ id:uid('note'), x:Math.random()*Math.max(w-200,40), y:Math.random()*200+20, text:'', image:r.result,
+      color:MIKO_COLORS[notes.length%MIKO_COLORS.length], rot:(Math.random()*10-5).toFixed(1) });
+    saveDB(true); renderProjectSubtab();
+  };
+  r.readAsDataURL(f);
+}
+function updateMikoText(i,val){
+  const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId);
+  if(p.miko[i]){ p.miko[i].text = val; saveDB(true); }
+}
+function removeMikoNote(i){
+  const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId);
+  p.miko.splice(i,1); saveDB(true); renderProjectSubtab();
+}
+
+function mikoDragStart(e,i){
+  e.preventDefault();
+  const wall = document.getElementById('miko-wall'); if(!wall) return;
+  const noteEl = e.currentTarget;
+  const wallRect = wall.getBoundingClientRect();
+  const noteRect = noteEl.getBoundingClientRect();
+  mikoDrag = { i, noteEl, offsetX:e.clientX-noteRect.left, offsetY:e.clientY-noteRect.top, wallRect, x:noteRect.left-wallRect.left, y:noteRect.top-wallRect.top };
+  noteEl.style.zIndex = 60;
+  document.addEventListener('pointermove', mikoDragMove);
+  document.addEventListener('pointerup', mikoDragEnd);
+}
+function mikoDragMove(e){
+  if(!mikoDrag) return;
+  let x = e.clientX - mikoDrag.wallRect.left - mikoDrag.offsetX;
+  let y = e.clientY - mikoDrag.wallRect.top - mikoDrag.offsetY;
+  x = Math.max(0, Math.min(x, mikoDrag.wallRect.width-70));
+  y = Math.max(0, Math.min(y, mikoDrag.wallRect.height-70));
+  mikoDrag.x = x; mikoDrag.y = y;
+  mikoDrag.noteEl.style.left = x+'px'; mikoDrag.noteEl.style.top = y+'px';
+}
+function mikoDragEnd(){
+  if(!mikoDrag) return;
+  const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId);
+  if(p && p.miko[mikoDrag.i]){ p.miko[mikoDrag.i].x = mikoDrag.x; p.miko[mikoDrag.i].y = mikoDrag.y; saveDB(true); }
+  mikoDrag.noteEl.style.zIndex = '';
+  document.removeEventListener('pointermove', mikoDragMove);
+  document.removeEventListener('pointerup', mikoDragEnd);
+  mikoDrag = null;
+}
+
+/* Media (images) */
+function projectMediaHTML(entityId,p){
+  let imgs = p.images.map((img,i)=>`<div style="position:relative;"><img src="${img}" style="width:100%; height:130px; object-fit:cover; border-radius:10px; border:1px solid var(--line);"><button class="icon-btn" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); border-radius:50%;" onclick="removeImage(${i})">✕</button></div>`).join('');
+  return `<div class="section-title">Media Gallery</div>
+  <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px; margin-bottom:20px;">${imgs}</div>
+  ${!p.images.length?'<p class="mini-note">No images yet.</p>':''}
+  <label class="btn btn-primary">Upload Image<input type="file" accept="image/*" multiple style="display:none" onchange="addImages(this)"></label>`;
+}
+function addImages(input){
+  const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId);
+  const files = Array.from(input.files); let remaining = files.length;
+  if(!remaining) return;
+  files.forEach(f=>{ const r=new FileReader(); r.onload=()=>{ p.images.push(r.result); remaining--; if(remaining===0){ saveDB(true); renderProjectSubtab(); } }; r.readAsDataURL(f); });
+}
+function removeImage(i){ const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId); p.images.splice(i,1); saveDB(true); renderProjectSubtab(); }
+
+/* Audio */
+function projectAudioHTML(entityId,p){
+  let rows = p.audio.map((a,i)=>`<div class="list-item"><div class="li-main"><div class="li-title">${esc(a.name)}</div><div class="li-sub">Uploaded demo file</div></div>
+    <audio controls src="${a.data}" style="height:32px; max-width:180px;"></audio>
+    <button class="icon-btn" onclick="removeAudio(${i})">✕</button></div>`).join('') || '<p class="mini-note">No audio files uploaded yet.</p>';
+  return `<div class="section-title">Audio Files</div>${rows}
+  <label class="btn btn-primary" style="margin-top:14px;">Upload Audio (max ~5MB)<input type="file" accept="audio/*" style="display:none" onchange="addAudio(this)"></label>`;
+}
+function addAudio(input){
+  const f = input.files[0]; if(!f) return;
+  if(f.size > 5*1024*1024){ alert('Please choose an audio file under 5MB — large files can exceed browser storage limits.'); return; }
+  const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId);
+  const r = new FileReader(); r.onload=()=>{ p.audio.push({id:uid('aud'), name:f.name, data:r.result}); saveDB(true); renderProjectSubtab(); }; r.readAsDataURL(f);
+}
+function removeAudio(i){ const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId); p.audio.splice(i,1); saveDB(true); renderProjectSubtab(); }
+
+/* Dates */
+function projectDatesHTML(entityId,p){
+  let rows = p.dates.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map((d)=>{
+    const i = p.dates.indexOf(d);
+    return `<div class="list-item"><div class="li-main"><div class="li-title">${fmtDate(d.date)}</div><div class="li-sub">${esc(d.note)}</div></div><button class="icon-btn" onclick="removeDate(${i})">✕</button></div>`;
+  }).join('') || '<p class="mini-note">No key dates yet.</p>';
+  return `<div class="section-title">Key Dates</div>${rows}
+  <div class="grid-2" style="margin-top:14px;">
+    <div class="field"><label>Date</label><input type="date" id="dt-date"></div>
+    <div class="field"><label>Note</label><input id="dt-note" placeholder="Mixing session, video shoot, deadline..."></div>
+  </div>
+  <button class="btn btn-primary" onclick="addDate()">Add Date</button>`;
+}
+function addDate(){
+  const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId);
+  const date = document.getElementById('dt-date').value; if(!date) return;
+  p.dates.push({id:uid('date'), date, note:document.getElementById('dt-note').value});
+  saveDB(true); renderProjectSubtab();
+}
+function removeDate(i){ const {entityId,projectId}=currentProjectRef; const p=findProject(entityId,projectId); p.dates.splice(i,1); saveDB(true); renderProjectSubtab(); }
+
+/* ---------- ARTIST: Finance ---------- */
+function renderArtistFinance(e){
+  const totalCost = e.finance.filter(f=>f.type==='cost').reduce((s,f)=>s+parseFloat(f.amount||0),0);
+  const totalPay = e.finance.filter(f=>f.type==='payment').reduce((s,f)=>s+parseFloat(f.amount||0),0);
+  let rows = e.finance.slice().reverse().map(f=>{
+    const i = e.finance.indexOf(f);
+    return `<tr><td>${fmtDate(f.date)}</td><td>${f.type==='cost'?'<span style="color:var(--bad)">Cost</span>':'<span style="color:var(--good)">Payment</span>'}</td><td>${esc(f.desc)}</td><td>${money(f.amount)}</td><td>${f.receipt?`<a href="${f.receipt}" target="_blank">View</a>`:'—'}</td><td><button class="icon-btn" onclick="removeFinance(${i})">✕</button></td></tr>`;
+  }).join('');
+  return `
+  <div class="stat-row">
+    <div class="stat-card good"><div class="v">${money(totalPay)}</div><div class="l">Total Payments</div></div>
+    <div class="stat-card bad"><div class="v">${money(totalCost)}</div><div class="l">Total Costs</div></div>
+    <div class="stat-card gold"><div class="v">${money(totalPay-totalCost)}</div><div class="l">Net</div></div>
+  </div>
+  <div class="section-title">Ledger</div>
+  ${e.finance.length ? `<div style="overflow-x:auto;"><table class="data-table"><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Receipt</th><th></th></tr>${rows}</table></div>` : `<p class="mini-note">No transactions logged yet.</p>`}
+  <div class="section-title">Add Transaction</div>
+  <div class="grid-2">
+    <div class="field"><label>Type</label><select id="fn-type"><option value="cost">Cost</option><option value="payment">Payment</option></select></div>
+    <div class="field"><label>Amount</label><input type="number" step="0.01" id="fn-amount" placeholder="0.00"></div>
+    <div class="field"><label>Date</label><input type="date" id="fn-date"></div>
+    <div class="field"><label>Description</label><input id="fn-desc" placeholder="Studio time, distribution fee, royalty payout..."></div>
+  </div>
+  <div class="field"><label>Receipt Image (optional)</label><input type="file" accept="image/*" id="fn-receipt-input" onchange="handleReceiptFile(this)"></div>
+  <input type="hidden" id="fn-receipt-data">
+  <button class="btn btn-primary" onclick="addFinance()">Add Entry</button>
+  `;
+}
+function handleReceiptFile(input){ const f=input.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>document.getElementById('fn-receipt-data').value=r.result; r.readAsDataURL(f); }
+function addFinance(){
+  const e = activeEntity();
+  const amount = document.getElementById('fn-amount').value; if(!amount) return;
+  e.finance.push({ id:uid('fin'), type:document.getElementById('fn-type').value, amount, date:document.getElementById('fn-date').value, desc:document.getElementById('fn-desc').value, receipt:document.getElementById('fn-receipt-data').value||'' });
+  saveDB(true); renderTabContent();
+}
+function removeFinance(i){ const e=activeEntity(); e.finance.splice(i,1); saveDB(true); renderTabContent(); }
+
+/* ---------- ARTIST: Personal ---------- */
+function renderPersonalTab(e){
+  const pw = e.personal.passwords || [];
+  let pwRows = pw.map((p,i)=>`<div class="list-item">
+    <div class="li-main"><div class="li-title">${esc(p.label)}</div><div class="li-sub">${esc(p.username)}</div></div>
+    <div class="pw-row"><input type="password" id="pw-val-${i}" value="${esc(p.password)}" readonly style="width:130px;"><button class="icon-btn" onclick="togglePw(${i})">👁</button></div>
+    <button class="icon-btn" onclick="removePw(${i})">✕</button></div>`).join('') || '<p class="mini-note">No saved credentials yet.</p>';
+
+  return `
+  <div class="section-title">Contact Info</div>
+  <div class="grid-2">
+    <div class="field"><label>Full Name</label><input id="pi-name" value="${esc(e.personal.name)}"></div>
+    <div class="field"><label>Email</label><input id="pi-email" value="${esc(e.personal.email)}"></div>
+    <div class="field"><label>Phone</label><input id="pi-phone" value="${esc(e.personal.phone)}"></div>
+    <div class="field"><label>Address</label><input id="pi-address" value="${esc(e.personal.address)}"></div>
+  </div>
+  <div class="field"><label>Notes</label><textarea id="pi-notes" rows="3">${esc(e.personal.notes)}</textarea></div>
+  <button class="btn btn-primary" onclick="savePersonal()">Save Info</button>
+
+  <div class="section-title" style="margin-top:36px;">Saved Credentials</div>
+  ${pwRows}
+  <div class="grid-2" style="margin-top:14px;">
+    <div class="field"><label>Label</label><input id="pw-label" placeholder="Distro, DAW login..."></div>
+    <div class="field"><label>Username</label><input id="pw-user" placeholder="username / email"></div>
+  </div>
+  <div class="field"><label>Password</label><input id="pw-pass" type="text" placeholder="password"></div>
+  <button class="btn btn-gold" onclick="addPw()">Add Credential</button>
+  <p class="mini-note">Stored locally on this device only — never transmitted anywhere.</p>
+  `;
+}
+function savePersonal(){
+  const e = activeEntity();
+  e.personal.name = document.getElementById('pi-name').value;
+  e.personal.email = document.getElementById('pi-email').value;
+  e.personal.phone = document.getElementById('pi-phone').value;
+  e.personal.address = document.getElementById('pi-address').value;
+  e.personal.notes = document.getElementById('pi-notes').value;
+  saveDB(true); toast('Info saved');
+}
+function addPw(){
+  const e = activeEntity(); const label = document.getElementById('pw-label').value.trim(); if(!label) return;
+  e.personal.passwords.push({id:uid('pw'), label, username:document.getElementById('pw-user').value, password:document.getElementById('pw-pass').value});
+  saveDB(true); renderTabContent();
+}
+function removePw(i){ const e=activeEntity(); e.personal.passwords.splice(i,1); saveDB(true); renderTabContent(); }
+function togglePw(i){ const f=document.getElementById('pw-val-'+i); f.type = f.type==='password'?'text':'password'; }
+
+/* ---------- ARTIST: iTunes preview ---------- */
+function renderItunesTab(e){
+  const it = e.itunes;
+  const projectOptions = e.projects.map(p=>`<option value="${p.id}" ${it.projectId===p.id?'selected':''}>${esc(p.title)}</option>`).join('');
+  const tracks = it.tracks && it.tracks.length ? it.tracks : [];
+  const trackHTML = tracks.map((t,i)=>`<div class="itunes-track"><span class="n">${i+1}</span><span class="tn">${esc(t.title)}</span><span class="dur">${esc(t.duration||'')}</span></div>`).join('') || `<p class="mini-note" style="padding:10px 0;">Select a project to pull its tracklist, or add tracks manually below.</p>`;
+  return `
+  <div class="grid-2">
+    <div>
+      <div class="section-title">Build Preview</div>
+      <div class="field"><label>Pull Tracks From Project</label><select id="it-project" onchange="itPullProject(this.value)"><option value="">— None —</option>${projectOptions}</select></div>
+      <div class="icon-pick"><div class="prev" id="it-cover-prev" style="width:80px;height:80px;">${it.cover?`<img src="${it.cover}">`:'Art'}</div><div style="flex:1;"><label style="margin:0;">Cover Art</label><input type="file" accept="image/*" onchange="itCoverFile(this)"></div></div>
+      <input type="hidden" id="it-cover-data" value="${esc(it.cover||'')}">
+      <div class="field"><label>Album / Single Title</label><input id="it-title" value="${esc(it.title)}" placeholder="Album title"></div>
+      <div class="field"><label>Artist Name</label><input id="it-artist" value="${esc(it.artist||e.name)}"></div>
+      <button class="btn btn-primary" style="margin-top:14px;" onclick="saveItunes()">Update Preview</button>
+    </div>
+    <div>
+      <div class="section-title">Preview</div>
+      <div class="itunes-frame">
+        <div class="itunes-cover">${it.cover?`<img src="${it.cover}">`:'ARTWORK'}</div>
+        <div class="itunes-title">${esc(it.title||'Untitled Release')}</div>
+        <div class="itunes-artist">${esc(it.artist||e.name)}</div>
+        <div class="itunes-meta">${tracks.length} Song${tracks.length!==1?'s':''} · Preview Simulation</div>
+        <div class="itunes-btn-row"><div class="ib">▶ Play</div><div class="ib">☁ Get</div></div>
+        ${trackHTML}
+      </div>
+    </div>
+  </div>`;
+}
+function itPullProject(pid){
+  const e = activeEntity(); e.itunes.projectId = pid;
+  if(pid){ const p = e.projects.find(x=>x.id===pid); e.itunes.title = p.title; e.itunes.tracks = p.songs.map(s=>({title:s.title, duration:s.duration})); if(p.cover) e.itunes.cover = p.cover; }
+  saveDB(true); renderTabContent();
+}
+function itCoverFile(input){ const f=input.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ document.getElementById('it-cover-data').value=r.result; document.getElementById('it-cover-prev').innerHTML=`<img src="${r.result}">`; }; r.readAsDataURL(f); }
+function saveItunes(){
+  const e = activeEntity();
+  e.itunes.title = document.getElementById('it-title').value;
+  e.itunes.artist = document.getElementById('it-artist').value;
+  e.itunes.cover = document.getElementById('it-cover-data').value;
+  saveDB(true); renderTabContent(); toast('Preview updated');
+}
+
+/* =========================================================
+   COMPANY MODULES
+   ========================================================= */
+function renderCompanyOverview(e){
+  const totalCosts = e.companyFinance.costs.reduce((s,c)=>s+parseFloat(c.amount||0),0);
+  const totalRoy = e.companyFinance.royalties.reduce((s,c)=>s+parseFloat(c.amount||0),0);
+  const activeCampaigns = e.campaigns.filter(c=>c.status!=='complete').length;
+  return `
+  <div class="stat-row">
+    <div class="stat-card"><div class="v">${e.linked.length}</div><div class="l">Linked Projects</div></div>
+    <div class="stat-card gold"><div class="v">${activeCampaigns}</div><div class="l">Active Campaigns</div></div>
+    <div class="stat-card good"><div class="v">${money(totalRoy)}</div><div class="l">Royalty Gains</div></div>
+    <div class="stat-card bad"><div class="v">${money(totalCosts)}</div><div class="l">Net Costs</div></div>
+  </div>
+  <div class="section-title">Roster Projects <span class="sm" onclick="switchTab('Projects')" style="cursor:pointer; color:var(--accent);">Manage →</span></div>
+  ${e.linked.length ? `<div class="row-scroll">${e.linked.map(l=>{ const p=findProject(l.entityId,l.projectId); if(!p) return ''; return projectCardHTML(l.entityId,p); }).join('')}</div>` :
+  `<div class="empty-state"><div class="big">🏢</div><h3>No projects linked yet</h3><p>Pull in projects from your artists to build the company's active roster.</p><button class="btn btn-primary" onclick="switchTab('Projects')">Link a Project</button></div>`}
+  `;
+}
+
+function renderCompanyProjects(e){
+  const flat = allProjectsFlat();
+  const linkedSet = new Set(e.linked.map(l=>l.entityId+'|'+l.projectId));
+  let rows = flat.map(f=>{
+    const key = f.entityId+'|'+f.project.id; const isLinked = linkedSet.has(key);
+    return `<div class="list-item">
+      <div class="li-main"><div class="li-title">${esc(f.project.title)}</div><div class="li-sub">${esc(f.entityName)} · ${esc(f.project.status||'Idea')}</div></div>
+      <button class="btn ${isLinked?'btn-ghost':'btn-gold'} btn-sm" onclick="toggleLink('${f.entityId}','${f.project.id}')">${isLinked?'Unlink':'Link to Company'}</button>
+    </div>`;
+  }).join('') || '<p class="mini-note">No projects exist across your artist profiles yet. Create projects inside an artist profile first.</p>';
+
+  return `
+  <div class="section-title">Linked Roster</div>
+  ${e.linked.length ? `<div class="row-scroll">${e.linked.map(l=>{ const p=findProject(l.entityId,l.projectId); if(!p) return ''; return projectCardHTML(l.entityId,p); }).join('')}</div>` : `<p class="mini-note">Nothing linked yet — pick from the list below.</p>`}
+  <div class="section-title" style="margin-top:32px;">All Projects Across Artists</div>
+  ${rows}
+  `;
+}
+function toggleLink(entityId, projectId){
+  const e = activeEntity();
+  const idx = e.linked.findIndex(l=>l.entityId===entityId && l.projectId===projectId);
+  if(idx>=0) e.linked.splice(idx,1); else e.linked.push({entityId, projectId});
+  saveDB(true); renderTabContent();
+}
+
+/* Company Finance */
+function renderCompanyFinance(e){
+  const totalCosts = e.companyFinance.costs.reduce((s,c)=>s+parseFloat(c.amount||0),0);
+  const totalRoy = e.companyFinance.royalties.reduce((s,c)=>s+parseFloat(c.amount||0),0);
+  const net = totalRoy - totalCosts;
+  let costRows = e.companyFinance.costs.slice().reverse().map(c=>{ const i=e.companyFinance.costs.indexOf(c); return `<div class="list-item"><div class="li-main"><div class="li-title">${esc(c.desc)}</div><div class="li-sub">${fmtDate(c.date)}</div></div><div style="color:var(--bad); font-weight:700;">${money(c.amount)}</div><button class="icon-btn" onclick="removeCompanyEntry('costs',${i})">✕</button></div>`; }).join('') || '<p class="mini-note">No costs logged yet.</p>';
+  let royRows = e.companyFinance.royalties.slice().reverse().map(c=>{ const i=e.companyFinance.royalties.indexOf(c); return `<div class="list-item"><div class="li-main"><div class="li-title">${esc(c.desc)}</div><div class="li-sub">${fmtDate(c.date)} ${c.project?'· '+esc(c.project):''}</div></div><div style="color:var(--good); font-weight:700;">${money(c.amount)}</div><button class="icon-btn" onclick="removeCompanyEntry('royalties',${i})">✕</button></div>`; }).join('') || '<p class="mini-note">No royalty gains logged yet.</p>';
+
+  return `
+  <div class="stat-row">
+    <div class="stat-card bad"><div class="v">${money(totalCosts)}</div><div class="l">Net Costs</div></div>
+    <div class="stat-card good"><div class="v">${money(totalRoy)}</div><div class="l">Royalty Gains</div></div>
+    <div class="stat-card ${net>=0?'gold':'bad'}"><div class="v">${money(net)}</div><div class="l">Overall Net</div></div>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div class="section-title">Costs</div>${costRows}
+      <div class="field" style="margin-top:12px;"><label>Description</label><input id="cf-cost-desc" placeholder="Marketing spend, distribution..."></div>
+      <div class="grid-2"><div class="field"><label>Amount</label><input type="number" step="0.01" id="cf-cost-amt"></div><div class="field"><label>Date</label><input type="date" id="cf-cost-date"></div></div>
+      <button class="btn btn-danger" style="width:100%;" onclick="addCompanyEntry('costs')">Add Cost</button>
+    </div>
+    <div>
+      <div class="section-title">Royalty Gains</div>${royRows}
+      <div class="field" style="margin-top:12px;"><label>Description</label><input id="cf-roy-desc" placeholder="Streaming royalties, sync deal..."></div>
+      <div class="grid-2"><div class="field"><label>Amount</label><input type="number" step="0.01" id="cf-roy-amt"></div><div class="field"><label>Date</label><input type="date" id="cf-roy-date"></div></div>
+      <div class="field"><label>Project (optional)</label><input id="cf-roy-project" placeholder="Which release"></div>
+      <button class="btn btn-primary" style="width:100%;" onclick="addCompanyEntry('royalties')">Add Royalty</button>
+    </div>
+  </div>
+  `;
+}
+function addCompanyEntry(kind){
+  const e = activeEntity();
+  if(kind==='costs'){
+    const amt = document.getElementById('cf-cost-amt').value; if(!amt) return;
+    e.companyFinance.costs.push({id:uid('cost'), desc:document.getElementById('cf-cost-desc').value, amount:amt, date:document.getElementById('cf-cost-date').value});
+  } else {
+    const amt = document.getElementById('cf-roy-amt').value; if(!amt) return;
+    e.companyFinance.royalties.push({id:uid('roy'), desc:document.getElementById('cf-roy-desc').value, amount:amt, date:document.getElementById('cf-roy-date').value, project:document.getElementById('cf-roy-project').value});
+  }
+  saveDB(true); renderTabContent();
+}
+function removeCompanyEntry(kind,i){ const e=activeEntity(); e.companyFinance[kind].splice(i,1); saveDB(true); renderTabContent(); }
+
+/* Campaigns */
+function renderCampaignsTab(e){
+  let cards = e.campaigns.slice().reverse().map(c=>{
+    const i = e.campaigns.indexOf(c);
+    const doneCount = c.steps.filter(s=>s.done).length;
+    const pct = Math.round((doneCount/c.steps.length)*100);
+    const proj = findProject(c.entityId,c.projectId);
+    let stepRows = c.steps.map((s,si)=>{
+      const locked = si>0 && !c.steps[si-1].done;
+      return `<div class="step-row">
+        <div class="step-check ${s.done?'done':''} ${locked?'locked':''}" onclick="${locked?'':`toggleStep(${i},${si})`}">${s.done?'✓':''}</div>
+        <div class="step-label ${s.done?'done':''} ${locked?'locked':''}">${esc(s.label)}</div>
+      </div>`;
+    }).join('');
+    return `<div class="campaign-card ${pct===100?'complete':''}">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div><h3 style="font-size:22px;">${esc(c.name)}</h3><div class="mini-note" style="margin-top:0;">${proj?esc(proj.title):'Project removed'}</div></div>
+        <button class="icon-btn" onclick="deleteCampaign(${i})">✕</button>
+      </div>
+      <div class="campaign-progress-bar"><div class="campaign-progress-fill" style="width:${pct}%;"></div></div>
+      ${stepRows}
+      ${pct===100?`<div style="margin-top:14px; color:var(--good); font-weight:700; font-size:13px;">🏆 Campaign complete!</div>`:''}
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="big">🚀</div><h3>No campaigns yet</h3><p>Turn a linked project into a campaign and work through the rollout checklist together.</p></div>`;
+
+  const linkedOptions = e.linked.map(l=>{ const p=findProject(l.entityId,l.projectId); return p ? `<option value="${l.entityId}|${l.projectId}">${esc(p.title)}</option>` : ''; }).join('');
+
+  return `
+  <div class="section-title">Campaigns</div>
+  ${cards}
+  <div class="section-title" style="margin-top:32px;">Start a New Campaign</div>
+  ${e.linked.length ? `
+  <div class="field"><label>Project</label><select id="cp-project">${linkedOptions}</select></div>
+  <div class="field"><label>Campaign Name</label><input id="cp-name" placeholder="e.g. Summer Single Rollout"></div>
+  <button class="btn btn-gold" onclick="createCampaign()">Create Campaign</button>
+  ` : `<p class="mini-note">Link at least one project on the Projects tab first.</p>`}
+  `;
+}
+function createCampaign(){
+  const e = activeEntity();
+  const sel = document.getElementById('cp-project').value; if(!sel) return;
+  const [entityId, projectId] = sel.split('|');
+  const name = document.getElementById('cp-name').value.trim(); if(!name) return;
+  e.campaigns.push({ id:uid('camp'), entityId, projectId, name, status:'active', steps: CAMPAIGN_STEPS.map(l=>({label:l, done:false})) });
+  saveDB(true); renderTabContent();
+}
+function deleteCampaign(i){ if(!confirm('Delete this campaign?')) return; const e=activeEntity(); e.campaigns.splice(i,1); saveDB(true); renderTabContent(); }
+function toggleStep(ci,si){
+  const e = activeEntity(); const c = e.campaigns[ci]; const step = c.steps[si];
+  step.done = !step.done;
+  const allDone = c.steps.every(s=>s.done);
+  c.status = allDone ? 'complete' : 'active';
+  saveDB(true); renderTabContent();
+  if(step.done){
+    const row = document.querySelectorAll('.campaign-card')[ci];
+    if(row) burstConfetti(row.getBoundingClientRect(), 18);
+    if(allDone) celebrateBig();
+  }
+}
+
+/* ---------- confetti ---------- */
+function burstConfetti(rect, count){
+  const colors = ['#d4af37','#e50914','#fff6d5','#2ecc71','#ffffff'];
+  const cx = rect.left + rect.width/2, cy = rect.top + 20;
+  for(let i=0;i<count;i++){
+    const p = document.createElement('div'); p.className='confetti-piece';
+    p.style.left = (cx + (Math.random()*160-80)) + 'px';
+    p.style.top = cy + 'px';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.animation = `confettiFall ${1.1+Math.random()*0.8}s ease-in forwards`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 2200);
+  }
+}
+function celebrateBig(){
+  const colors = ['#d4af37','#e50914','#fff6d5','#2ecc71','#ffffff','#00ffff'];
+  for(let i=0;i<80;i++){
+    const p = document.createElement('div'); p.className='confetti-piece';
+    p.style.left = (Math.random()*window.innerWidth) + 'px';
+    p.style.top = '-20px';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.animation = `confettiFall ${1.6+Math.random()*1.4}s ease-in forwards`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 3200);
+  }
+  const banner = document.createElement('div'); banner.className='celebrate-banner'; banner.textContent='🎉 Campaign Complete!';
+  document.body.appendChild(banner);
+  setTimeout(()=>banner.remove(), 2800);
+}
+
+/* =========================================================
+   LANA — centralized assistant
+   ========================================================= */
+function lanaPanelHTML(){
+  return `<div id="lana-panel">
+    <div class="lana-head"><div class="dot"></div><h3>LANA</h3><button class="icon-btn" onclick="toggleLana()">✕</button></div>
+    <div class="lana-body" id="lana-body"></div>
+    <div class="lana-quick">
+      <button class="lq-btn" onclick="lanaQuick('summary')">Project Summary</button>
+      <button class="lq-btn" onclick="lanaQuick('finance')">Finance Snapshot</button>
+      <button class="lq-btn" onclick="lanaQuick('next')">What should I focus on?</button>
+    </div>
+    <div class="lana-input-row">
+      <input id="lana-input" placeholder="Ask LANA about your data..." onkeydown="if(event.key==='Enter') lanaSend()">
+      <button class="btn btn-gold btn-sm" onclick="lanaSend()">Send</button>
+    </div>
+  </div>`;
+}
+function toggleLana(){
+  lanaOpen = !lanaOpen;
+  const panel = document.getElementById('lana-panel');
+  if(!panel) return;
+  panel.classList.toggle('open', lanaOpen);
+  if(lanaOpen) renderLanaLog();
+}
+function renderLanaLog(){
+  const e = activeEntity(); const body = document.getElementById('lana-body'); if(!body) return;
+  if(!e.lanaLog.length){
+    e.lanaLog.push({who:'bot', text:`Hi, I'm LANA — your label intelligence. I read only what's saved in ${e.name}'s profile on this device. Ask me for a summary, finance snapshot, or what to focus on next.`});
+  }
+  body.innerHTML = e.lanaLog.map(m=>`<div class="lana-msg ${m.who==='bot'?'bot':'me'}">${esc(m.text)}</div>`).join('');
+  body.scrollTop = body.scrollHeight;
+}
+function lanaPush(who, text){
+  const e = activeEntity(); e.lanaLog.push({who,text}); if(e.lanaLog.length>40) e.lanaLog.shift(); saveDB(true); renderLanaLog();
+}
+function lanaQuick(kind){ lanaPush('me', kind==='summary'?'Give me a project summary':kind==='finance'?'Give me a finance snapshot':'What should I focus on?'); lanaRespond(kind); }
+function lanaSend(){
+  const input = document.getElementById('lana-input'); const text = input.value.trim(); if(!text) return;
+  lanaPush('me', text); input.value=''; lanaRespond(analyzeQuery(text));
+}
+function analyzeQuery(text){
+  const t = text.toLowerCase();
+  if(t.includes('finance')||t.includes('money')||t.includes('cost')||t.includes('royalt')) return 'finance';
+  if(t.includes('campaign')) return 'campaign';
+  if(t.includes('focus')||t.includes('next')||t.includes('todo')||t.includes('should')) return 'next';
+  if(t.includes('project')||t.includes('song')||t.includes('album')) return 'summary';
+  return 'summary';
+}
+function lanaRespond(kind){
+  const e = activeEntity(); let text = '';
+  if(e.type==='artist'){
+    const totalCost = e.finance.filter(f=>f.type==='cost').reduce((s,f)=>s+parseFloat(f.amount||0),0);
+    const totalPay = e.finance.filter(f=>f.type==='payment').reduce((s,f)=>s+parseFloat(f.amount||0),0);
+    const inProgress = e.projects.filter(p=>p.status!=='Released');
+    if(kind==='summary'){
+      text = e.projects.length ? `${e.name} has ${e.projects.length} project(s) on file. ${inProgress.length} still in progress.\n` + e.projects.slice(0,5).map(p=>`• ${p.title} — ${p.status}${p.deadline?', target '+fmtDate(p.deadline):''}`).join('\n')
+      : `No projects logged yet for ${e.name}. Head to the Projects tab to start your first one.`;
+    } else if(kind==='finance'){
+      text = `Payments received: ${money(totalPay)}\nCosts: ${money(totalCost)}\nNet: ${money(totalPay-totalCost)}\n${e.finance.length} entries logged so far.`;
+    } else if(kind==='next'){
+      const noDeadline = e.projects.filter(p=>!p.deadline && p.status!=='Released');
+      if(inProgress.length===0 && e.projects.length===0) text = `Start by creating a project for ${e.name} on the Projects tab.`;
+      else if(noDeadline.length) text = `${noDeadline.length} project(s) have no target date yet: ${noDeadline.map(p=>p.title).join(', ')}. Setting dates helps keep things moving.`;
+      else text = `Everything in progress has a target date. Consider logging any pending costs or payments on the Finance tab to keep the numbers current.`;
+    } else { text = "I can help with project summaries, finance snapshots, or what to focus on next — just ask."; }
+  } else {
+    const totalCosts = e.companyFinance.costs.reduce((s,c)=>s+parseFloat(c.amount||0),0);
+    const totalRoy = e.companyFinance.royalties.reduce((s,c)=>s+parseFloat(c.amount||0),0);
+    const active = e.campaigns.filter(c=>c.status!=='complete');
+    if(kind==='summary'){
+      text = e.linked.length ? `${e.linked.length} project(s) linked to ${e.name}'s roster.` : `No projects linked yet — visit the Projects tab to pull in releases from your artists.`;
+    } else if(kind==='finance'){
+      text = `Royalty gains: ${money(totalRoy)}\nNet costs: ${money(totalCosts)}\nOverall net: ${money(totalRoy-totalCosts)}`;
+    } else if(kind==='campaign'){
+      text = active.length ? `${active.length} campaign(s) in progress:\n` + active.map(c=>{ const done=c.steps.filter(s=>s.done).length; return `• ${c.name} — ${done}/${c.steps.length} steps`; }).join('\n') : `No active campaigns. Turn a linked project into a campaign on the Campaigns tab.`;
+    } else if(kind==='next'){
+      if(!e.linked.length) text = `Link a project to ${e.name} first, then turn it into a campaign to start tracking rollout steps.`;
+      else if(!e.campaigns.length) text = `You have linked projects but no campaigns yet — start one on the Campaigns tab.`;
+      else { const stalled = active.find(c=>c.steps.filter(s=>s.done).length===0); text = stalled ? `"${stalled.name}" hasn't started its checklist yet — that's a good place to focus.` : `All active campaigns are moving. Keep working through the remaining checklist steps.`; }
+    } else { text = "I can help with roster summaries, finance snapshots, or campaign status — just ask."; }
+  }
+  setTimeout(()=> lanaPush('bot', text), 250);
+}
+
+/* ---------- keyboard/mobile niceties ---------- */
+document.addEventListener('touchmove', function(e){
+  // allow normal scrolling within scrollable containers, no global lock needed
+}, {passive:true});
+
+</script>
+</body>
+</html>
